@@ -1,0 +1,7 @@
+node_modules/
+.env
+data/db.json
+public/uploads/avatars/*
+public/uploads/sounds/*
+!public/uploads/avatars/.gitkeep
+!public/uploads/sounds/.gitkeep

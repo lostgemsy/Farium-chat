@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060708">
+<meta name="description" content="HOHOGAMES Silver Chat">
+<title>HOHOGAMES · Silver Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<canvas id="shader-background" aria-hidden="true"></canvas>
+<div class="metal-grain" aria-hidden="true"></div>
+<div id="molecule-layer" aria-hidden="true"></div>
+
+<div id="toast-region" aria-live="polite"></div>
+<div id="hud-message" class="hud-message hidden"></div>
+<div id="announcement-banner" class="announcement-banner hidden"></div>
+<div id="lockdown-overlay" class="lockdown-overlay hidden">
+  <div class="lockdown-inner">
+    <div class="lockdown-pulse"></div>
+    <div class="eyebrow">SITE PAUSED</div>
+    <h1 id="lockdown-title">Please wait</h1>
+    <p id="lockdown-reason">The site has temporarily been paused.</p>
+    <div class="lockdown-timer" id="lockdown-timer">--:--</div>
+    <div class="lockdown-note">Your session is still connected. Normal activity returns when the timer ends.</div>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand-lockup">
+    <div class="brand-mark"><span></span><span></span><span></span></div>
+    <div>
+      <div class="brand-name">HOHOGAMES</div>
+      <div class="brand-sub">SILVER CHAT</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <div id="presence-pill" class="presence-pill"><span class="presence-dot"></span><span id="online-count">0</span> online</div>
+    <button class="icon-btn" data-open="voice-settings" title="Voice settings">⌁</button>
+    <button class="user-chip hidden" id="user-chip" data-open="profile"></button>
+    <button class="primary-btn" id="auth-open">Sign in</button>
+  </div>
+</header>
+
+<main class="app-shell">
+  <aside class="sidebar">
+    <button class="nav-btn active" data-view="global"><span>◉</span><b>Global</b></button>
+    <button class="nav-btn" data-view="friends"><span>✦</span><b>Friends</b></button>
+    <button class="nav-btn" data-view="groups"><span>◈</span><b>Groups</b></button>
+    <button class="nav-btn" data-view="voice"><span>◌</span><b>Voice queue</b></button>
+    <div class="sidebar-spacer"></div>
+    <button class="nav-btn" data-view="settings"><span>⚙</span><b>Settings</b></button>
+    <button class="nav-btn admin-nav hidden" id="admin-nav" data-view="admin"><span>◆</span><b>Admin</b></button>
+    <div class="sidebar-hint">Full-screen glass UI<br><span>WebRTC • Socket.IO</span></div>
+  </aside>
+
+  <section class="chat-stage">
+    <div class="stage-head">
+      <div>
+        <div class="stage-kicker" id="stage-kicker">PUBLIC ROOM</div>
+        <h1 id="stage-title">Global chat</h1>
+      </div>
+      <div class="stage-tools">
+        <button class="ghost-btn" id="friend-add-btn">+ Friend</button>
+        <button class="ghost-btn" id="profile-edit-btn">Profile</button>
+      </div>
+    </div>
+
+    <div id="view-global" class="view active-view">
+      <div class="message-list" id="global-messages"></div>
+      <form class="composer" id="global-composer">
+        <button type="button" class="attach-btn" id="global-emoji" title="Emoji">☺</button>
+        <input id="global-input" maxlength="500" autocomplete="off" placeholder="Sign in to join the global chat...">
+        <button class="send-btn" type="submit">Send</button>
+      </form>
+    </div>
+
+    <div id="view-friends" class="view">
+      <div class="friends-layout">
+        <div class="subpanel">
+          <div class="subpanel-head"><span>Friends</span><button class="ghost-btn" id="refresh-friends">Refresh</button></div>
+          <div id="friends-list" class="stack-list"></div>
+        </div>
+        <div class="subpanel">
+          <div class="subpanel-head"><span>Requests</span></div>
+          <div id="requests-list" class="stack-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-groups" class="view">
+      <div class="groups-layout">
+        <div class="subpanel groups-sidebar"><div class="subpanel-head"><span>My groups</span><button class="ghost-btn" id="create-group-btn">+ Create</button></div><div id="groups-list" class="stack-list"></div></div>
+        <div class="subpanel group-room"><div class="group-empty" id="group-empty">Pick a group to open its room.</div><div id="group-room-live" class="hidden full-room"><div class="subpanel-head"><div><span id="group-room-name">Group</span><small id="group-room-members"></small></div><button class="ghost-btn" id="invite-group-btn">Invite</button></div><div id="group-messages" class="message-list"></div><form id="group-composer" class="composer"><input id="group-input" maxlength="500" autocomplete="off" placeholder="Message this group..."><button class="send-btn">Send</button></form></div></div>
+      </div>
+    </div>
+
+    <div id="view-voice" class="view">
+      <div class="voice-layout">
+        <div class="voice-card hero-voice"><div class="voice-orb"><span></span></div><div class="stage-kicker">VOICE MATCH</div><h2>Queue to talk</h2><p>Join the queue and the server pairs you with the next available person using peer-to-peer WebRTC voice.</p><button class="primary-btn" id="queue-toggle">Join voice queue</button><div class="queue-status" id="queue-status">Not in queue</div></div>
+        <div class="subpanel"><div class="subpanel-head"><span>Voice settings</span><button class="ghost-btn" data-open="voice-settings">Open</button></div><div class="setting-row"><div><b>Push to talk</b><small>Hold the on-screen mic or your chosen key.</small></div><label class="switch"><input type="checkbox" id="ptt-toggle"><span></span></label></div><div class="setting-row"><div><b>Input</b><small id="mic-name">Default microphone</small></div><select id="mic-select" class="select"></select></div><div class="voice-actions"><button class="ghost-btn" id="mute-local">Mute mic</button><button class="ghost-btn" id="leave-voice">Leave</button></div></div>
+      </div>
+      <div id="ptt-mobile" class="ptt-mobile hidden">HOLD TO TALK</div>
+    </div>
+
+    <div id="view-settings" class="view"><div class="settings-layout"><div class="subpanel"><div class="subpanel-head"><span>Profile</span></div><div class="profile-edit"><label class="avatar-picker"><img id="settings-avatar" alt="Avatar"><span>Change photo</span><input id="avatar-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="form-stack"><input id="settings-username" class="text-input" readonly><div class="setting-row"><div><b>Appearance</b><small>Silver glass + animated WebGL waves</small></div><button class="ghost-btn" id="reduce-motion-toggle">Motion: Auto</button></div><button class="primary-btn" id="save-profile">Save profile</button></div></div></div><div class="subpanel"><div class="subpanel-head"><span>Account</span></div><div id="account-status" class="account-status">You are browsing as a guest.</div><button class="ghost-btn" id="signout-btn">Sign out</button></div></div></div>
+
+    <div id="view-admin" class="view">
+      <div class="admin-layout">
+        <div class="admin-tabs" id="admin-tabs">
+          <button class="admin-tab active" data-admin="mod">Moderation</button>
+          <button class="admin-tab" data-admin="users">Users</button>
+          <button class="admin-tab owner-only hidden" data-admin="admins">Admins</button>
+          <button class="admin-tab" data-admin="announce">Announcements</button>
+          <button class="admin-tab" data-admin="hud">HUD editor</button>
+          <button class="admin-tab" data-admin="control">Site control</button>
+          <button class="admin-tab" data-admin="troll">Troll sounds</button>
+          <button class="admin-tab" data-admin="inbox">Message owner</button>
+        </div>
+        <div class="admin-content" id="admin-content"></div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="right-rail">
+    <div class="rail-card profile-card" id="quick-profile"><div class="rail-avatar"><img id="rail-avatar" alt=""><span id="rail-online" class="mini-dot"></span></div><div><div id="rail-name" class="rail-name">Guest</div><div id="rail-role" class="rail-role">Not signed in</div></div><button class="more-btn" id="profile-more">⋯</button></div>
+    <div class="rail-card"><div class="rail-title">People here</div><div id="online-users" class="people-list"></div></div>
+    <div class="rail-card"><div class="rail-title">Last announcement</div><div id="last-announcement" class="mini-note">Nothing yet.</div></div>
+  </aside>
+</main>
+
+<div class="modal-root" id="modal-root">
+  <div class="modal-backdrop" data-close-modal></div>
+  <section class="modal" id="auth-modal" aria-modal="true"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">WELCOME</div><h2 id="auth-title">Sign in</h2><p id="auth-subtitle">Enter your account to join the community.</p><form id="auth-form" class="form-stack"><input id="auth-username" class="text-input" minlength="3" maxlength="24" autocomplete="username" placeholder="Username" required><input id="auth-password" class="text-input" minlength="6" type="password" autocomplete="current-password" placeholder="Password" required><button class="primary-btn" type="submit">Continue</button></form><button class="link-btn" id="auth-switch">Create an account</button><div class="small-note" id="owner-note">The first account must use the owner name “hohogames”.</div></section>
+  <section class="modal hidden" id="profile-modal"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">PROFILE</div><h2 id="profile-modal-name">Profile</h2><div id="profile-modal-content"></div></section>
+  <section class="modal small-modal hidden" id="voice-settings-modal"><button class="modal-close" data-close-modal>×</button><div class="eyebrow">VOICE</div><h2>Voice settings</h2><div class="setting-row"><div><b>Push to talk</b><small>Use the button or key below.</small></div><label class="switch"><input type="checkbox" id="ptt-toggle-modal"><span></span></label></div><label class="setting-field">PTT key<input id="ptt-key" class="text-input" value="Space" maxlength="20"></label><label class="setting-field">Microphone<select id="mic-select-modal" class="select"></select></label><button class="primary-btn" id="save-voice-settings">Save voice settings</button></section>
+  <section class="modal hidden" id="generic-modal"><button class="modal-close" data-close-modal>×</button><div id="generic-modal-content"></div></section>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/shader.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

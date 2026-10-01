@@ -1,0 +1,1 @@
+lib folder intentionally kept simple in v1.0; persistence is implemented in server.js
