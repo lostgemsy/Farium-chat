@@ -1,95 +1,930 @@
-require('dotenv').config();
-const express=require('express');
-const http=require('http');
-const path=require('path');
-const fs=require('fs');
-const crypto=require('crypto');
-const bcrypt=require('bcryptjs');
-const cookieParser=require('cookie-parser');
-const multer=require('multer');
-const {Server}=require('socket.io');
-const app=express();
-const server=http.createServer(app);
-const io=new Server(server,{maxHttpBufferSize:2e6});
-app.set('trust proxy',String(process.env.TRUST_PROXY||'1')==='0'?false:true);
-app.use(express.json({limit:'1mb'}));
-app.use(cookieParser());
-app.use(express.urlencoded({extended:true}));
-app.use(express.static(path.join(__dirname,'public')));
+"use strict";
 
-const dataDir=path.join(__dirname,'data'); const dbFile=path.join(dataDir,'db.json');
-if(!fs.existsSync(dataDir))fs.mkdirSync(dataDir,{recursive:true});
-function fresh(){return {users:[],sessions:[],friendRequests:[],groups:[],globalMessages:[],groupMessages:{},bans:[],announcements:[],ownerMessages:[],config:{lockdownUntil:0,lockdownReason:'',chatResetOn:false,hud:{enabled:false,text:'',x:50,y:16,scale:1}}}}
-let db; try{db=JSON.parse(fs.readFileSync(dbFile,'utf8'))}catch{db=fresh()}
-function save(){fs.writeFileSync(dbFile,JSON.stringify(db,null,2))}
-for(const k of Object.keys(fresh()))if(db[k]===undefined)db[k]=fresh()[k];
-const randomId=()=>crypto.randomBytes(12).toString('hex'); const now=()=>Date.now();
-const ownerName=(process.env.OWNER_USERNAME||'hohogames').toLowerCase(); const maxMsg=Math.min(Math.max(Number(process.env.MAX_MESSAGE_LENGTH||500),50),2000);
-const sessionsByToken=token=>db.sessions.find(s=>s.token===token&&s.expires>now());
-function currentUser(req){const token=req.cookies.hgs_session;const s=token&&sessionsByToken(token);return s?db.users.find(u=>u.id===s.userId):null}
-function safeUser(u){if(!u)return null;return {id:u.id,username:u.username,role:u.role,avatar:u.avatar||null,createdAt:u.createdAt,mutedUntil:u.mutedUntil||0}}
-function auth(req,res,next){const u=currentUser(req);if(!u)return res.status(401).json({error:'Sign in required.'});req.user=u;next()}
-function admin(req,res,next){auth(req,res,()=>{if(!['owner','admin'].includes(req.user.role))return res.status(403).json({error:'Admin access required.'});next()})}
-function owner(req,res,next){auth(req,res,()=>{if(req.user.role!=='owner')return res.status(403).json({error:'Owner access required.'});next()})}
-function clientIp(req){return String(req.ip||req.socket.remoteAddress||'').replace(/^::ffff:/,'')}
-function isBannedIp(ip){return db.bans.some(b=>b.ip===ip)}
-function checkAccess(req,res,next){if(isBannedIp(clientIp(req)))return res.status(403).json({error:'This IP is banned.'});next()}
-app.use('/api',checkAccess);
+/* ═══════════════════════════════════════════════════════════════════════
+   Farius Chat — server
+   Express + Socket.IO + JSON store + WebRTC signaling + roles + moderation
+   ═══════════════════════════════════════════════════════════════════════ */
 
-const avatarStorage=multer.diskStorage({destination:(req,file,cb)=>cb(null,path.join(__dirname,'public/uploads/avatars')),filename:(req,file,cb)=>cb(null,`${randomId()}${path.extname(file.originalname).toLowerCase()}`)});
-const soundStorage=multer.diskStorage({destination:(req,file,cb)=>cb(null,path.join(__dirname,'public/uploads/sounds')),filename:(req,file,cb)=>cb(null,`${randomId()}.mp3`)});
-const avatarUpload=multer({storage:avatarStorage,limits:{fileSize:2*1024*1024},fileFilter:(req,file,cb)=>cb(/image\/(png|jpe?g|webp)/.test(file.mimetype)?null:new Error('Use PNG, JPG, or WEBP.'))});
-const soundUpload=multer({storage:soundStorage,limits:{fileSize:10*1024*1024},fileFilter:(req,file,cb)=>cb((file.mimetype==='audio/mpeg'||path.extname(file.originalname).toLowerCase()==='.mp3')?null:new Error('Use an MP3 file.'))});
+const express     = require("express");
+const http        = require("http");
+const path        = require("path");
+const fs          = require("fs");
+const crypto      = require("crypto");
+const bcrypt      = require("bcryptjs");
+const jwt         = require("jsonwebtoken");
+const multer      = require("multer");
+const helmet      = require("helmet");
+const compression = require("compression");
+const rateLimit   = require("express-rate-limit");
+const { execFile } = require("child_process");
+const ffmpegPath  = require("ffmpeg-static");
+const { Server }  = require("socket.io");
 
-app.get('/api/me',(req,res)=>{const u=currentUser(req);let token=req.cookies.hgs_session; if(!u) token=null; res.json({user:safeUser(u),token})});
-app.post('/api/register',async(req,res)=>{const username=String(req.body.username||'').trim(), password=String(req.body.password||'');if(!/^[a-zA-Z0-9_\-]{3,24}$/.test(username))return res.status(400).json({error:'Username must be 3–24 letters, numbers, _ or -.'});if(password.length<6)return res.status(400).json({error:'Password must be at least 6 characters.'});if(db.users.length===0&&username.toLowerCase()!==ownerName)return res.status(400).json({error:`The first account must be ${ownerName}.`});if(db.users.some(u=>u.username.toLowerCase()===username.toLowerCase()))return res.status(409).json({error:'Username is already taken.'});const role=db.users.length===0?'owner':'user';const u={id:randomId(),username,passwordHash:await bcrypt.hash(password,12),role,avatar:null,createdAt:now(),mutedUntil:0};db.users.push(u);save();const token=randomId()+randomId();db.sessions.push({token,userId:u.id,expires:now()+864e5*Number(process.env.SESSION_DAYS||30)});save();res.cookie('hgs_session',token,{httpOnly:true,sameSite:'lax',secure:req.secure||false,maxAge:864e5*Number(process.env.SESSION_DAYS||30)});res.json({user:safeUser(u),token})});
-app.post('/api/login',async(req,res)=>{const username=String(req.body.username||'').trim();const password=String(req.body.password||'');const u=db.users.find(x=>x.username.toLowerCase()===username.toLowerCase());if(!u||!(await bcrypt.compare(password,u.passwordHash)))return res.status(401).json({error:'Invalid username or password.'});const token=randomId()+randomId();db.sessions=db.sessions.filter(s=>s.expires>now());db.sessions.push({token,userId:u.id,expires:now()+864e5*Number(process.env.SESSION_DAYS||30)});save();res.cookie('hgs_session',token,{httpOnly:true,sameSite:'lax',secure:req.secure||false,maxAge:864e5*Number(process.env.SESSION_DAYS||30)});res.json({user:safeUser(u),token})});
-app.post('/api/logout',auth,(req,res)=>{const token=req.cookies.hgs_session;db.sessions=db.sessions.filter(s=>s.token!==token);save();res.clearCookie('hgs_session');res.json({ok:true})});
-app.get('/api/global',(req,res)=>res.json({messages:db.globalMessages.slice(-500)}));
+/* ───────────────────────────── Config ───────────────────────────── */
+const PORT            = Number(process.env.PORT || 3000);
+const JWT_SECRET      = process.env.JWT_SECRET     || "farius-chat-change-this-secret";
+const ADMIN_USERNAME  = process.env.ADMIN_USERNAME || "hogohames";
+const ADMIN_PASSWORD  = process.env.ADMIN_PASSWORD || "28426713fg";
+const TOKEN_TTL       = "7d";
 
-app.get('/api/profile',auth,(req,res)=>res.json({user:safeUser(req.user)}));
-app.patch('/api/profile',auth,(req,res)=>{save();res.json({user:safeUser(req.user)})});
-app.post('/api/profile/avatar',auth,avatarUpload.single('avatar'),(req,res)=>{if(!req.file)return res.status(400).json({error:'Choose an image.'});req.user.avatar=`/uploads/avatars/${req.file.filename}`;save();io.emit('presence',onlinePayload());res.json({user:safeUser(req.user)})});
+const MAX_MESSAGE_LEN = 2000;
+const MAX_HISTORY     = 200;
+const MAX_DB_MESSAGES = 8000;
+const TRIM_TO         = 5000;
+const MAX_UPLOAD_B    = 100 * 1024 * 1024;
 
-app.get('/api/friends',auth,(req,res)=>{const sent=db.friendRequests.filter(x=>x.to===req.user.id&&x.status==='pending').map(x=>{const u=db.users.find(y=>y.id===x.from);return {id:x.id,username:u?.username,avatar:u?.avatar||null}});const ids=[];for(const f of db.friendRequests.filter(x=>x.status==='accepted')){if(f.from===req.user.id)ids.push(f.to);if(f.to===req.user.id)ids.push(f.from)}const friends=ids.map(id=>safeUser(db.users.find(u=>u.id===id))).filter(Boolean);res.json({friends,requests:sent})});
-app.post('/api/friends/request',auth,(req,res)=>{const name=String(req.body.username||'').trim();const target=db.users.find(u=>u.username.toLowerCase()===name.toLowerCase());if(!target||target.id===req.user.id)return res.status(404).json({error:'User not found.'});if(db.friendRequests.some(x=>x.from===req.user.id&&x.to===target.id&&(x.status==='pending'||x.status==='accepted')))return res.status(409).json({error:'Request already exists.'});db.friendRequests.push({id:randomId(),from:req.user.id,to:target.id,status:'pending',at:now()});save();res.json({ok:true})});
-app.post('/api/friends/accept',auth,(req,res)=>{const f=db.friendRequests.find(x=>x.id===req.body.requestId&&x.to===req.user.id);if(!f)return res.status(404).json({error:'Request not found.'});f.status='accepted';save();res.json({ok:true})});
+/* ───────────────────────────── Paths ────────────────────────────── */
+const ROOT       = __dirname;
+const PUBLIC_DIR = path.join(ROOT, "public");
+const DATA_DIR   = path.join(ROOT, "data");
+const UPLOAD_DIR = path.join(PUBLIC_DIR, "uploads");
+const DB_FILE    = path.join(DATA_DIR, "db.json");
 
-app.get('/api/groups',auth,(req,res)=>res.json({groups:db.groups.filter(g=>g.members.includes(req.user.id)).map(g=>({...g}))}));
-app.post('/api/groups',auth,(req,res)=>{const name=String(req.body.name||'').trim().slice(0,50);if(!name)return res.status(400).json({error:'Group name required.'});const g={id:randomId(),name,ownerId:req.user.id,members:[req.user.id],createdAt:now()};db.groups.push(g);db.groupMessages[g.id]=[];save();res.json({group:g})});
-app.post('/api/groups/:id/invite',auth,(req,res)=>{const g=db.groups.find(x=>x.id===req.params.id&&x.members.includes(req.user.id));if(!g)return res.status(404).json({error:'Group not found.'});const f=db.friendRequests.find(x=>x.status==='accepted'&&((x.from===req.user.id&&db.users.find(u=>u.id===x.to)?.username.toLowerCase()===String(req.body.username||'').toLowerCase())||(x.to===req.user.id&&db.users.find(u=>u.id===x.from)?.username.toLowerCase()===String(req.body.username||'').toLowerCase())));if(!f)return res.status(400).json({error:'That person is not your friend.'});const id=f.from===req.user.id?f.to:f.from;if(!g.members.includes(id))g.members.push(id);save();res.json({ok:true})});
-app.get('/api/groups/:id/messages',auth,(req,res)=>{const g=db.groups.find(x=>x.id===req.params.id&&x.members.includes(req.user.id));if(!g)return res.status(404).json({error:'Group not found.'});res.json({messages:(db.groupMessages[g.id]||[]).slice(-500)})});
+fs.mkdirSync(DATA_DIR,   { recursive: true });
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-app.get('/api/admin/users',admin,(req,res)=>res.json({users:db.users.map(safeUser)}));
-app.get('/api/admin/overview',admin,(req,res)=>res.json({bans:db.bans.slice(-200)}));
-app.post('/api/admin/mute',admin,(req,res)=>{if(req.body.userId===req.user.id)return res.status(400).json({error:'You cannot mute yourself.'});const u=db.users.find(x=>x.id===req.body.userId);if(!u)return res.status(404).json({error:'User not found.'});u.mutedUntil=now()+Math.min(Number(req.body.minutes||10),120)*60000;save();io.to(`user:${u.id}`).emit('moderation:muted',{until:u.mutedUntil});res.json({ok:true})});
-app.post('/api/admin/bans',admin,(req,res)=>{const target=db.users.find(x=>x.id===req.body.userId);if(!target)return res.status(404).json({error:'User not found.'});const ip=onlineIpForUser(target.id);if(!ip)return res.status(400).json({error:'That user is not currently online. IP bans require them to be online.'});if(!db.bans.some(b=>b.ip===ip))db.bans.push({ip,reason:String(req.body.reason||'Community moderation'),createdBy:req.user.username,at:now()});save();for(const s of io.sockets.sockets.values())if(s.user?.id===target.id)s.disconnect(true);res.json({ok:true,ip})});
-app.post('/api/admin/bans/unban',admin,(req,res)=>{const ip=String(req.body.ip||'');db.bans=db.bans.filter(b=>b.ip!==ip);save();res.json({ok:true})});
-app.post('/api/admin/role',owner,(req,res)=>{const u=db.users.find(x=>x.id===req.body.userId);if(!u||u.role==='owner')return res.status(404).json({error:'User not found or protected.'});const role=req.body.role==='admin'?'admin':'user';u.role=role;save();io.emit('admin:refresh');res.json({user:safeUser(u)})});
-app.get('/api/admin/config',admin,(req,res)=>res.json({config:db.config}));
-app.patch('/api/admin/config',admin,(req,res)=>{if(req.body.hud){db.config.hud={...db.config.hud,...req.body.hud}}save();io.emit('hud:update',db.config.hud);res.json({config:db.config})});
-app.post('/api/admin/lockdown',admin,(req,res)=>{const minutes=Math.max(0,Math.min(Number(req.body.minutes||0),120));db.config.lockdownUntil=minutes?now()+minutes*60000:0;db.config.lockdownReason=String(req.body.reason||'');save();io.emit('lockdown',{until:db.config.lockdownUntil,reason:db.config.lockdownReason});res.json({ok:true})});
-app.post('/api/admin/reset-chat',admin,(req,res)=>{db.globalMessages=[];db.config.chatResetOn=!!req.body.on;save();io.emit('chat:reset');res.json({ok:true})});
-app.get('/api/admin/sounds',admin,(req,res)=>{const dir=path.join(__dirname,'public/uploads/sounds');const files=fs.readdirSync(dir).filter(f=>f.endsWith('.mp3')).map(f=>({name:f.replace(/^[0-9a-f]+-/,'').replace(/\.mp3$/i,''),url:`/uploads/sounds/${f}`}));res.json({sounds:files})});
-app.post('/api/admin/sounds',admin,soundUpload.single('sound'),(req,res)=>{if(!req.file)return res.status(400).json({error:'Choose an MP3.'});const name=String(req.body.name||req.file.originalname.replace(/\.mp3$/i,'')).slice(0,60).replace(/[^\w\- ]/g,'');const final=`${randomId()}-${name||'sound'}.mp3`;fs.renameSync(req.file.path,path.join(req.file.destination,final));res.json({sound:{name,url:`/uploads/sounds/${final}`}})});
-app.get('/api/admin/inbox',owner,(req,res)=>res.json({messages:db.ownerMessages.slice(-300)}));
+/* ───────────────────────── Persistent store ─────────────────────── */
+const SCHEMA = {
+  users: [],
+  messages: [],
+  groups: [],
+  announcements: [],
+  bans: [],
+  mutes: [],
+  auditLog: []
+};
 
-const sockets=new Map(); const voiceQueue=[];
-function onlineIpForUser(id){for(const [sid,s] of sockets.entries())if(s.user?.id===id)return s.ip}
-function onlinePayload(){return {users:[...sockets.values()].map(s=>safeUser(s.user)).filter(Boolean)}}
-function assertSocket(s){if(!s.user)throw new Error('Sign in required.');const banned=isBannedIp(s.ip);if(banned)throw new Error('This IP is banned.');if(db.config.lockdownUntil>now()&&!['owner','admin'].includes(s.user.role))throw new Error('The site is temporarily paused.');if(s.user.mutedUntil>now())throw new Error('You are muted until '+new Date(s.user.mutedUntil).toLocaleTimeString())}
-io.on('connection',socket=>{socket.ip=String(socket.handshake.address||'').replace(/^::ffff:/,'');socket.on('auth:login',({token})=>{const sess=sessionsByToken(token);const u=sess&&db.users.find(x=>x.id===sess.userId);if(!u)return;socket.user=u;sockets.set(socket.id,socket);socket.join(`user:${u.id}`);io.emit('presence',onlinePayload());socket.emit('hud:update',db.config.hud);socket.emit('lockdown',{until:db.config.lockdownUntil,reason:db.config.lockdownReason});socket.emit('announcement',db.announcements.at(-1)||{});});
- socket.on('presence:ask',()=>socket.emit('presence',onlinePayload()));
- socket.on('chat:send',({text},ack)=>{try{assertSocket(socket);const t=String(text||'').trim();if(!t)throw new Error('Message is empty.');if(t.length>maxMsg)throw new Error(`Message must be under ${maxMsg} characters.`);if(db.config.chatResetOn)throw new Error('Global chat is currently reset.');const m={id:randomId(),userId:socket.user.id,username:socket.user.username,role:socket.user.role,avatar:socket.user.avatar||null,text:t,at:now()};db.globalMessages.push(m);db.globalMessages=db.globalMessages.slice(-1000);save();io.emit('chat:message',m);ack?.({ok:true})}catch(e){ack?.({error:e.message})}});
- socket.on('group:send',({groupId,text},ack)=>{try{assertSocket(socket);const g=db.groups.find(x=>x.id===groupId&&x.members.includes(socket.user.id));if(!g)throw new Error('You are not in that group.');const t=String(text||'').trim();if(!t)throw new Error('Message is empty.');const m={id:randomId(),groupId,userId:socket.user.id,username:socket.user.username,role:socket.user.role,avatar:socket.user.avatar||null,text:t.slice(0,maxMsg),at:now()};db.groupMessages[groupId]=db.groupMessages[groupId]||[];db.groupMessages[groupId].push(m);db.groupMessages[groupId]=db.groupMessages[groupId].slice(-500);save();for(const s of sockets.values())if(s.user&&g.members.includes(s.user.id))s.emit('group:message',m);ack?.({ok:true})}catch(e){ack?.({error:e.message})}});
- socket.on('owner:message',({text},ack)=>{try{assertSocket(socket);const t=String(text||'').trim();if(!t)throw new Error('Message is empty.');const m={id:randomId(),userId:socket.user.id,username:socket.user.username,text:t.slice(0,1000),at:now()};db.ownerMessages.push(m);db.ownerMessages=db.ownerMessages.slice(-300);save();for(const s of sockets.values())if(s.user?.role==='owner')s.emit('owner:message',m);ack?.({ok:true})}catch(e){ack?.({error:e.message})}});
- socket.on('admin:announcement',({text},ack)=>{try{if(!['owner','admin'].includes(socket.user?.role))throw new Error('Admin access required.');const t=String(text||'').trim();if(!t)throw new Error('Announcement is empty.');const a={id:randomId(),text:t.slice(0,300),by:socket.user.username,at:now()};db.announcements.push(a);db.announcements=db.announcements.slice(-50);save();io.emit('announcement',a);ack?.({ok:true})}catch(e){ack?.({error:e.message})}});
- socket.on('admin:troll',({sound,name})=>{if(['owner','admin'].includes(socket.user?.role))io.emit('troll:play',{sound,name})});
- socket.on('voice:join',async()=>{try{if(!socket.user)throw new Error('Sign in required.');if(!voiceQueue.includes(socket.id))voiceQueue.push(socket.id);if(voiceQueue.length>=2){const a=voiceQueue.shift(),b=voiceQueue.shift();const sa=io.sockets.sockets.get(a),sb=io.sockets.sockets.get(b);if(sa&&sb){sa.peerId=b;sb.peerId=a;sa.emit('voice:matched',{peerId:b});sb.emit('voice:matched',{peerId:a})}}}catch(e){socket.emit('voice:error',e.message)}});
- socket.on('voice:leave',()=>{const idx=voiceQueue.indexOf(socket.id);if(idx>=0)voiceQueue.splice(idx,1);const peer=socket.peerId;socket.peerId=null;if(peer){const ps=io.sockets.sockets.get(peer);if(ps){ps.peerId=null;ps.emit('voice:ended')}}});
- socket.on('voice:offer',({to,offer})=>{const ps=io.sockets.sockets.get(to);if(ps)ps.emit('voice:offer',{from:socket.id,offer})});socket.on('voice:answer',({to,answer})=>{const ps=io.sockets.sockets.get(to);if(ps)ps.emit('voice:answer',{from:socket.id,answer})});socket.on('voice:ice',({to,candidate})=>{const ps=io.sockets.sockets.get(to);if(ps)ps.emit('voice:ice',{from:socket.id,candidate})});
- socket.on('disconnect',()=>{const idx=voiceQueue.indexOf(socket.id);if(idx>=0)voiceQueue.splice(idx,1);const peer=socket.peerId;if(peer){const ps=io.sockets.sockets.get(peer);if(ps){ps.peerId=null;ps.emit('voice:ended')}}sockets.delete(socket.id);io.emit('presence',onlinePayload())});
+let db;
+try {
+  db = fs.existsSync(DB_FILE)
+    ? JSON.parse(fs.readFileSync(DB_FILE, "utf8"))
+    : structuredClone(SCHEMA);
+} catch (err) {
+  console.warn("[db] could not read db.json, starting fresh:", err.message);
+  db = structuredClone(SCHEMA);
+}
+for (const k of Object.keys(SCHEMA)) {
+  if (!Array.isArray(db[k])) db[k] = [];
+}
+
+/* Migrate legacy isAdmin → role */
+for (const u of db.users) {
+  if (!u.role) u.role = u.isAdmin ? "admin" : "user";
+  delete u.isAdmin;
+}
+
+let saveTimer = null;
+function save() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => { saveTimer = null; flushSave(); }, 250);
+}
+function flushSave() {
+  const tmp = DB_FILE + ".tmp";
+  try {
+    fs.writeFileSync(tmp, JSON.stringify(db));
+    fs.renameSync(tmp, DB_FILE);
+  } catch (err) {
+    console.error("[db] write failed:", err.message);
+  }
+}
+function saveNow() {
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  flushSave();
+}
+
+/* ───────────────────────────── Helpers ──────────────────────────── */
+const rid      = (prefix = "") => prefix + crypto.randomBytes(9).toString("hex");
+const now      = () => Date.now();
+const safeText = (v, max = MAX_MESSAGE_LEN) => String(v ?? "").trim().slice(0, max);
+
+const findUser     = (username) =>
+  db.users.find(u => u.username.toLowerCase() === String(username).toLowerCase());
+const findUserById = (id) => db.users.find(u => u.id === id);
+
+const publicUser = (u) => u && {
+  id: u.id,
+  username: u.username,
+  avatar: u.avatar || "",
+  background: u.background || "",
+  role: u.role || "user",
+  createdAt: u.createdAt
+};
+
+const tokenFor = (user) =>
+  jwt.sign({ sub: user.id, username: user.username, role: user.role },
+           JWT_SECRET, { expiresIn: TOKEN_TTL });
+
+const roleOf  = (u) => (u && u.role) || "user";
+const isAdmin = (u) => roleOf(u) === "admin";
+const isMod   = (u) => roleOf(u) === "mod" || isAdmin(u);
+
+const activeBan  = (userId) => db.bans.find(b =>
+  b.userId === userId && (b.permanent || (b.until && b.until > now())));
+const activeMute = (userId) => db.mutes.find(m =>
+  m.userId === userId && m.until > now());
+
+function audit(entry) {
+  db.auditLog.push({ id: rid("log_"), at: now(), ...entry });
+  if (db.auditLog.length > 2000) db.auditLog = db.auditLog.slice(-2000);
+  save();
+}
+
+/* ─────────────────────── Moderation normalizer ──────────────────── */
+const BLOCKED = new Set([
+  "nigger","niggers","nigga","niggah","niggas",
+  "faggot","faggots","retard","retarded",
+  "kike","spic","chink","coon"
+]);
+
+function normalizeForModeration(text) {
+  return String(text || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[@4]/g, "a")
+    .replace(/3/g, "e")
+    .replace(/[1!|]/g, "i")
+    .replace(/0/g, "o")
+    .replace(/[5$]/g, "s")
+    .replace(/7/g, "t")
+    .replace(/[^a-z0-9]/g, "")
+    .replace(/(.)\1{2,}/g, "$1$1");
+}
+function containsBlocked(text) {
+  const n = normalizeForModeration(text);
+  for (const word of BLOCKED) if (n.includes(word)) return true;
+  return false;
+}
+
+/* ───────────────────────────── Express ─────────────────────────── */
+const app = express();
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+app.use(compression());
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
+app.use(express.static(PUBLIC_DIR, { maxAge: "1h", index: false }));
+
+app.use("/api/", rateLimit({
+  windowMs: 60_000,
+  max: 240,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, slow down." }
+}));
+
+const authLimiter = rateLimit({
+  windowMs: 10 * 60_000,
+  max: 25,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many auth attempts. Try again later." }
 });
 
-app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public/index.html')));
-const port=Number(process.env.PORT||8080);server.listen(port,()=>console.log(`HOHOGAMES Silver Chat running on http://localhost:${port}`));
+/* ─────────────────────────── Uploads ───────────────────────────── */
+const ALLOWED_MIME = /^(image\/(png|jpe?g|gif|webp|avif)|video\/(mp4|webm|quicktime|ogg)|audio\/(mpeg|wav|ogg|webm|mp4))/;
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+    filename: (_req, file, cb) => {
+      const ext = (path.extname(file.originalname) || "").toLowerCase().slice(0, 10);
+      cb(null, `${Date.now()}-${crypto.randomBytes(5).toString("hex")}${ext}`);
+    }
+  }),
+  limits: { fileSize: MAX_UPLOAD_B, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MIME.test(file.mimetype)) {
+      return cb(new Error("Unsupported file type."));
+    }
+    cb(null, true);
+  }
+});
+
+/* ───────────────────────── Auth middleware ─────────────────────── */
+function auth(req, res, next) {
+  try {
+    const raw = req.headers.authorization || "";
+    const token = raw.startsWith("Bearer ") ? raw.slice(7) : null;
+    if (!token) return res.status(401).json({ error: "Sign in required." });
+
+    const payload = jwt.verify(token, JWT_SECRET);
+    const user = findUserById(payload.sub);
+    if (!user) return res.status(401).json({ error: "Account not found." });
+
+    const ban = activeBan(user.id);
+    if (ban) {
+      return res.status(403).json({
+        error: `You are banned ${
+          ban.permanent ? "permanently" : `until ${new Date(ban.until).toLocaleString()}`
+        }.`
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid session." });
+  }
+}
+
+function adminOnly(req, res, next) {
+  auth(req, res, () => {
+    if (!isAdmin(req.user)) return res.status(403).json({ error: "Admin only." });
+    next();
+  });
+}
+
+function staffOnly(req, res, next) {
+  auth(req, res, () => {
+    if (!isMod(req.user)) return res.status(403).json({ error: "Staff only." });
+    next();
+  });
+}
+
+/* ═══════════════════════════ Auth routes ═════════════════════════ */
+app.post("/api/auth/signup", authLimiter, upload.single("avatar"), async (req, res) => {
+  try {
+    const username = safeText(req.body.username, 24);
+    const password = String(req.body.password || "");
+
+    if (!/^[A-Za-z0-9_]{3,24}$/.test(username))
+      return res.status(400).json({ error: "Username must be 3-24 letters, numbers, or underscores." });
+    if (password.length < 8)
+      return res.status(400).json({ error: "Password must be at least 8 characters." });
+    if (findUser(username))
+      return res.status(409).json({ error: "Username is already taken." });
+
+    const isFounder = username.toLowerCase() === ADMIN_USERNAME.toLowerCase()
+                   && password === ADMIN_PASSWORD;
+
+    const user = {
+      id: rid("u_"),
+      username,
+      passwordHash: await bcrypt.hash(password, 12),
+      avatar: req.file ? `/uploads/${req.file.filename}` : "",
+      background: "",
+      createdAt: now(),
+      role: isFounder ? "admin" : "user",
+      friends: [],
+      friendRequests: []
+    };
+
+    db.users.push(user);
+    saveNow();
+
+    res.json({ token: tokenFor(user), user: publicUser(user) });
+  } catch (err) {
+    console.error("[signup]", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/auth/signin", authLimiter, async (req, res) => {
+  try {
+    const username = safeText(req.body.username, 24);
+    const password = String(req.body.password || "");
+    let user = findUser(username);
+
+    /* Auto-create the founder account on first sign-in if it doesn't exist */
+    if (!user
+        && username.toLowerCase() === ADMIN_USERNAME.toLowerCase()
+        && password === ADMIN_PASSWORD) {
+      user = {
+        id: rid("u_"),
+        username,
+        passwordHash: await bcrypt.hash(password, 12),
+        avatar: "",
+        background: "",
+        createdAt: now(),
+        role: "admin",
+        friends: [],
+        friendRequests: []
+      };
+      db.users.push(user);
+      saveNow();
+      audit({ type: "founder-bootstrap", target: user.id });
+    }
+
+    const ok = user && await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: "Invalid username or password." });
+
+    /* Promote to admin if founder credentials match an existing account */
+    if (username.toLowerCase() === ADMIN_USERNAME.toLowerCase()
+        && password === ADMIN_PASSWORD
+        && user.role !== "admin") {
+      user.role = "admin";
+      save();
+    }
+
+    const ban = activeBan(user.id);
+    if (ban) {
+      return res.status(403).json({
+        error: `You are banned ${
+          ban.permanent ? "permanently" : `until ${new Date(ban.until).toLocaleString()}`
+        }.`
+      });
+    }
+
+    res.json({ token: tokenFor(user), user: publicUser(user) });
+  } catch (err) {
+    console.error("[signin]", err);
+    res.status(500).json({ error: "Sign-in failed." });
+  }
+});
+
+app.get("/api/me", auth, (req, res) => {
+  res.json({
+    user: publicUser(req.user),
+    mute: activeMute(req.user.id) || null
+  });
+});
+
+/* ═══════════════════════════ Profile ═════════════════════════════ */
+app.post("/api/profile", auth, upload.single("avatar"), (req, res) => {
+  const username = safeText(req.body.username, 24);
+
+  if (username && username !== req.user.username) {
+    if (!/^[A-Za-z0-9_]{3,24}$/.test(username))
+      return res.status(400).json({ error: "Invalid username." });
+
+    const taken = findUser(username);
+    if (taken && taken.id !== req.user.id)
+      return res.status(409).json({ error: "Username is taken." });
+
+    req.user.username = username;
+  }
+
+  if (req.file) req.user.avatar = `/uploads/${req.file.filename}`;
+  if (typeof req.body.background === "string")
+    req.user.background = safeText(req.body.background, 500);
+
+  save();
+  res.json({ user: publicUser(req.user), token: tokenFor(req.user) });
+});
+
+/* ══════════════════════ Users / Friends ═════════════════════════ */
+app.get("/api/users/search", auth, (req, res) => {
+  const q = safeText(req.query.q, 24).toLowerCase();
+  if (!q) return res.json({ users: [] });
+
+  const users = db.users
+    .filter(u => u.id !== req.user.id && u.username.toLowerCase().includes(q))
+    .slice(0, 20);
+
+  res.json({ users: users.map(publicUser) });
+});
+
+app.post("/api/friends/request", auth, (req, res) => {
+  const target = findUserById(req.body.userId);
+  if (!target || target.id === req.user.id)
+    return res.status(404).json({ error: "User not found." });
+
+  target.friendRequests ||= [];
+  if (!target.friendRequests.includes(req.user.id) &&
+      !req.user.friends?.includes(target.id)) {
+    target.friendRequests.push(req.user.id);
+  }
+  save();
+  res.json({ ok: true });
+});
+
+app.post("/api/friends/accept", auth, (req, res) => {
+  const requester = findUserById(req.body.userId);
+  if (!requester) return res.status(404).json({ error: "User not found." });
+
+  req.user.friendRequests = (req.user.friendRequests || []).filter(x => x !== requester.id);
+  req.user.friends   ||= [];
+  requester.friends  ||= [];
+
+  if (!req.user.friends.includes(requester.id))   req.user.friends.push(requester.id);
+  if (!requester.friends.includes(req.user.id))   requester.friends.push(req.user.id);
+
+  save();
+  res.json({ ok: true });
+});
+
+app.post("/api/friends/remove", auth, (req, res) => {
+  const target = findUserById(req.body.userId);
+  if (!target) return res.status(404).json({ error: "User not found." });
+
+  req.user.friends = (req.user.friends || []).filter(x => x !== target.id);
+  target.friends   = (target.friends   || []).filter(x => x !== req.user.id);
+
+  save();
+  res.json({ ok: true });
+});
+
+app.get("/api/friends", auth, (req, res) => {
+  const friends  = (req.user.friends || [])
+    .map(findUserById).filter(Boolean).map(publicUser);
+  const requests = (req.user.friendRequests || [])
+    .map(findUserById).filter(Boolean).map(publicUser);
+
+  res.json({ friends, requests });
+});
+
+/* ═════════════════════════ Messages ═════════════════════════════ */
+app.get("/api/messages/global", auth, (_req, res) => {
+  res.json({
+    messages: db.messages.filter(m => m.scope === "global").slice(-MAX_HISTORY)
+  });
+});
+
+app.get("/api/messages/:peerId", auth, (req, res) => {
+  const me = req.user.id;
+  const peer = req.params.peerId;
+
+  const messages = db.messages
+    .filter(m => m.scope === "dm" && (
+      (m.fromId === me && m.toId === peer) ||
+      (m.fromId === peer && m.toId === me)
+    ))
+    .slice(-MAX_HISTORY);
+
+  res.json({ messages });
+});
+
+/* ══════════════════════════ Groups ══════════════════════════════ */
+const groupPublic = (g) => ({
+  id: g.id,
+  name: g.name,
+  description: g.description,
+  type: g.type,
+  private: !!g.private,
+  ownerId: g.ownerId,
+  memberCount: g.members.length,
+  persistentCall: !!g.persistentCall,
+  createdAt: g.createdAt
+});
+
+app.post("/api/groups", auth, (req, res) => {
+  const name        = safeText(req.body.name, 40);
+  const description = safeText(req.body.description, 180);
+  const type        = req.body.type === "call" ? "call" : "chat";
+  const isPrivate   = !!req.body.private;
+  const password    = isPrivate ? String(req.body.password || "") : "";
+
+  if (name.length < 2)
+    return res.status(400).json({ error: "Group name is too short." });
+  if (isPrivate && password.length < 4)
+    return res.status(400).json({ error: "Private groups need a password of 4+ characters." });
+
+  const group = {
+    id: rid("g_"),
+    name,
+    description,
+    type,
+    private: isPrivate,
+    passwordHash: isPrivate ? bcrypt.hashSync(password, 10) : "",
+    ownerId: req.user.id,
+    members: [req.user.id],
+    persistentCall: !!req.body.persistentCall,
+    createdAt: now()
+  };
+
+  db.groups.push(group);
+  save();
+  res.json({ group: groupPublic(group) });
+});
+
+app.get("/api/groups", auth, (_req, res) => {
+  res.json({ groups: db.groups.filter(g => !g.private).map(groupPublic) });
+});
+
+app.get("/api/groups/mine", auth, (req, res) => {
+  res.json({
+    groups: db.groups.filter(g => g.members.includes(req.user.id)).map(groupPublic)
+  });
+});
+
+app.post("/api/groups/:groupId/join", auth, async (req, res) => {
+  const g = db.groups.find(x => x.id === req.params.groupId);
+  if (!g) return res.status(404).json({ error: "Group not found." });
+
+  if (g.private) {
+    const pass = String(req.body.password || "");
+    const ok = g.passwordHash && await bcrypt.compare(pass, g.passwordHash);
+    if (!ok) return res.status(403).json({ error: "Incorrect group password." });
+  }
+
+  if (!g.members.includes(req.user.id)) g.members.push(req.user.id);
+  save();
+  res.json({ group: groupPublic(g) });
+});
+
+app.post("/api/groups/:groupId/leave", auth, (req, res) => {
+  const g = db.groups.find(x => x.id === req.params.groupId);
+  if (!g) return res.status(404).json({ error: "Group not found." });
+
+  g.members = g.members.filter(id => id !== req.user.id);
+  save();
+  res.json({ ok: true });
+});
+
+app.get("/api/groups/:groupId/messages", auth, (req, res) => {
+  const g = db.groups.find(x => x.id === req.params.groupId);
+  if (!g || !g.members.includes(req.user.id))
+    return res.status(403).json({ error: "Join the group first." });
+
+  const messages = db.messages
+    .filter(m => m.scope === "group" && m.groupId === g.id)
+    .slice(-MAX_HISTORY);
+
+  res.json({ messages });
+});
+
+/* ═══════════════════════ Uploads + GIF ══════════════════════════ */
+app.post("/api/upload", auth, upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded." });
+  res.json({
+    url:  `/uploads/${req.file.filename}`,
+    name: req.file.originalname,
+    type: req.file.mimetype,
+    size: req.file.size
+  });
+});
+
+app.post("/api/gif", auth, upload.single("video"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Upload a video." });
+  if (!req.file.mimetype.startsWith("video/")) {
+    fs.unlink(req.file.path, () => {});
+    return res.status(400).json({ error: "Only videos can be converted." });
+  }
+
+  const out = path.join(
+    UPLOAD_DIR,
+    `${Date.now()}-${crypto.randomBytes(5).toString("hex")}.gif`
+  );
+
+  execFile(
+    ffmpegPath,
+    ["-y", "-i", req.file.path, "-t", "20",
+     "-vf", "fps=12,scale=640:-1:flags=lanczos", "-loop", "0", out],
+    { timeout: 60_000 },
+    (err) => {
+      fs.unlink(req.file.path, () => {});
+      if (err) return res.status(400).json({ error: "GIF conversion failed." });
+      res.json({
+        url:  `/uploads/${path.basename(out)}`,
+        name: "farius.gif",
+        type: "image/gif"
+      });
+    }
+  );
+});
+
+/* ═════════════════════════ Moderation ═══════════════════════════ */
+app.get("/api/moderation", staffOnly, (_req, res) => {
+  const users = db.users.map(u => ({
+    ...publicUser(u),
+    banned: !!activeBan(u.id),
+    muted:  !!activeMute(u.id)
+  }));
+  res.json({
+    users,
+    bans: db.bans,
+    mutes: db.mutes,
+    announcements: db.announcements.slice(-50)
+  });
+});
+
+app.post("/api/moderation/mute", staffOnly, (req, res) => {
+  const target = findUserById(req.body.userId);
+  if (!target) return res.status(404).json({ error: "User not found." });
+  if (isAdmin(target) && !isAdmin(req.user))
+    return res.status(403).json({ error: "Only admins can mute other admins." });
+
+  const minutes = Math.max(1, Math.min(Number(req.body.minutes || 10), 60 * 24 * 30));
+  db.mutes.push({
+    id: rid("m_"),
+    userId: target.id,
+    until: now() + minutes * 60_000,
+    by: req.user.id,
+    reason: safeText(req.body.reason, 200)
+  });
+  audit({ type: "mute", target: target.id, by: req.user.id, minutes });
+  save();
+
+  emitToUser(target.id, "toast", {
+    type: "info",
+    message: `You were muted for ${minutes} minute(s).`
+  });
+
+  res.json({ ok: true });
+});
+
+app.post("/api/moderation/ban", staffOnly, (req, res) => {
+  const target = findUserById(req.body.userId);
+  if (!target || target.id === req.user.id)
+    return res.status(404).json({ error: "User not found." });
+  if (isAdmin(target) && !isAdmin(req.user))
+    return res.status(403).json({ error: "Only admins can ban other admins." });
+
+  const permanent = !!req.body.permanent;
+  const days = Math.max(1, Math.min(Number(req.body.days || 1), 3650));
+
+  db.bans.push({
+    id: rid("b_"),
+    userId: target.id,
+    until: permanent ? null : now() + days * 86_400_000,
+    permanent,
+    by: req.user.id,
+    reason: safeText(req.body.reason, 200),
+    createdAt: now()
+  });
+  audit({ type: "ban", target: target.id, by: req.user.id, permanent, days });
+  save();
+
+  for (const sid of getSockets(target.id)) {
+    io.to(sid).emit("forced-logout", {
+      reason: permanent ? "Permanently banned." : `Banned for ${days} day(s).`
+    });
+  }
+  res.json({ ok: true });
+});
+
+app.post("/api/moderation/unban", staffOnly, (req, res) => {
+  db.bans = db.bans.filter(b => b.userId !== req.body.userId);
+  save();
+  res.json({ ok: true });
+});
+
+app.post("/api/moderation/announcement", adminOnly, (req, res) => {
+  const message = safeText(req.body.message, 1000);
+  if (!message)
+    return res.status(400).json({ error: "Announcement cannot be empty." });
+  if (containsBlocked(message))
+    return res.status(400).json({ error: "Announcement contains blocked language." });
+
+  const announcement = { id: rid("a_"), message, createdAt: now(), by: req.user.id };
+  db.announcements.push(announcement);
+  save();
+  io.emit("announcement", announcement);
+  res.json({ announcement });
+});
+
+/* ═══════════════════ Role management (admin only) ═══════════════ */
+app.post("/api/admin/role", adminOnly, (req, res) => {
+  const target = findUserById(req.body.userId);
+  if (!target) return res.status(404).json({ error: "User not found." });
+  if (target.id === req.user.id)
+    return res.status(400).json({ error: "You cannot change your own role." });
+
+  const role = String(req.body.role || "");
+  if (!["user", "mod", "admin"].includes(role))
+    return res.status(400).json({ error: "Invalid role." });
+
+  const before = target.role || "user";
+  target.role = role;
+  audit({ type: "role", target: target.id, by: req.user.id, before, after: role });
+  save();
+
+  emitToUser(target.id, "role-changed", { role });
+  emitToUser(target.id, "toast", {
+    type: "info",
+    message: `Your role was updated to ${role}.`
+  });
+
+  res.json({ user: publicUser(target) });
+});
+
+/* ═══════════════════════ SPA fallback ═══════════════════════════ */
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
+  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+});
+
+/* ═════════════════════════ Socket.IO ════════════════════════════ */
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: true, credentials: true },
+  maxHttpBufferSize: 10 * 1024 * 1024,
+  pingTimeout: 25_000
+});
+
+const onlineSockets = new Map(); // userId -> Set<socketId>
+
+const getSockets = (userId) => onlineSockets.get(userId) || new Set();
+const emitToUser = (userId, event, payload) => {
+  for (const sid of getSockets(userId)) io.to(sid).emit(event, payload);
+};
+
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token;
+    const payload = jwt.verify(token, JWT_SECRET);
+    const user = findUserById(payload.sub);
+    if (!user || activeBan(user.id)) return next(new Error("Unauthorized"));
+    socket.userId = user.id;
+    next();
+  } catch {
+    next(new Error("Unauthorized"));
+  }
+});
+
+function pushMessage(m) {
+  db.messages.push(m);
+  if (db.messages.length > MAX_DB_MESSAGES) {
+    db.messages = db.messages.slice(-TRIM_TO);
+  }
+  save();
+}
+
+io.on("connection", (socket) => {
+  const user = findUserById(socket.userId);
+  if (!user) return socket.disconnect(true);
+
+  if (!onlineSockets.has(user.id)) onlineSockets.set(user.id, new Set());
+  onlineSockets.get(user.id).add(socket.id);
+
+  socket.emit("ready", {
+    user: publicUser(user),
+    announcements: db.announcements.slice(-5)
+  });
+  io.emit("presence", { userId: user.id, online: true });
+
+  /* ── Chat ── */
+  socket.on("global-message", (data) => {
+    if (activeMute(user.id))
+      return socket.emit("toast", { type: "error", message: "You are muted." });
+
+    const text = safeText(data?.text);
+    if (!text) return;
+    if (containsBlocked(text))
+      return socket.emit("toast", { type: "error", message: "That message was blocked." });
+
+    const message = {
+      id: rid("msg_"),
+      scope: "global",
+      fromId: user.id,
+      username: user.username,
+      avatar: user.avatar || "",
+      text,
+      createdAt: now()
+    };
+    pushMessage(message);
+    io.emit("global-message", message);
+  });
+
+  socket.on("dm-message", (data) => {
+    if (activeMute(user.id))
+      return socket.emit("toast", { type: "error", message: "You are muted." });
+
+    const toId = safeText(data?.toId, 80);
+    const target = findUserById(toId);
+    const text = safeText(data?.text);
+    if (!target || !text) return;
+    if (containsBlocked(text))
+      return socket.emit("toast", { type: "error", message: "That message was blocked." });
+
+    const message = {
+      id: rid("msg_"),
+      scope: "dm",
+      fromId: user.id,
+      toId,
+      username: user.username,
+      avatar: user.avatar || "",
+      text,
+      createdAt: now()
+    };
+    pushMessage(message);
+
+    const recipients = new Set([socket.id, ...getSockets(toId)]);
+    for (const sid of recipients) io.to(sid).emit("dm-message", message);
+  });
+
+  socket.on("group-message", (data) => {
+    if (activeMute(user.id))
+      return socket.emit("toast", { type: "error", message: "You are muted." });
+
+    const groupId = safeText(data?.groupId, 80);
+    const group = db.groups.find(x => x.id === groupId);
+    const text = safeText(data?.text);
+
+    if (!group || !group.members.includes(user.id) || !text) return;
+    if (containsBlocked(text))
+      return socket.emit("toast", { type: "error", message: "That message was blocked." });
+
+    const message = {
+      id: rid("msg_"),
+      scope: "group",
+      groupId,
+      fromId: user.id,
+      username: user.username,
+      avatar: user.avatar || "",
+      text,
+      createdAt: now()
+    };
+    pushMessage(message);
+
+    for (const uid of group.members) {
+      for (const sid of getSockets(uid)) io.to(sid).emit("group-message", message);
+    }
+  });
+
+  /* ── Typing ── */
+  socket.on("typing", (data) => {
+    const scope = data?.scope;
+    if (scope === "global") {
+      socket.broadcast.emit("typing", {
+        scope, fromId: user.id, username: user.username
+      });
+    } else if (scope === "dm") {
+      emitToUser(data.toId, "typing", {
+        scope, fromId: user.id, username: user.username
+      });
+    } else if (scope === "group") {
+      const group = db.groups.find(x => x.id === data.groupId);
+      if (!group || !group.members.includes(user.id)) return;
+      for (const uid of group.members) {
+        if (uid === user.id) continue;
+        emitToUser(uid, "typing", {
+          scope, fromId: user.id, username: user.username, groupId: group.id
+        });
+      }
+    }
+  });
+
+  /* ── Direct call signaling ── */
+  socket.on("call-invite", (data) => {
+    const toId = safeText(data?.toId, 80);
+    if (!findUserById(toId)) return;
+    emitToUser(toId, "incoming-call", {
+      callId: data.callId,
+      fromId: user.id,
+      fromUsername: user.username,
+      fromAvatar: user.avatar || "",
+      video: !!data.video,
+      groupId: data.groupId || null
+    });
+  });
+
+  socket.on("call-offer", (data) => {
+    const toId = safeText(data?.toId, 80);
+    emitToUser(toId, "call-offer", {
+      fromId: user.id, offer: data.offer, callId: data.callId
+    });
+  });
+
+  socket.on("call-answer", (data) => {
+    const toId = safeText(data?.toId, 80);
+    emitToUser(toId, "call-answer", {
+      fromId: user.id, answer: data.answer, callId: data.callId
+    });
+  });
+
+  socket.on("ice-candidate", (data) => {
+    const toId = safeText(data?.toId, 80);
+    emitToUser(toId, "ice-candidate", {
+      fromId: user.id, candidate: data.candidate, callId: data.callId
+    });
+  });
+
+  socket.on("call-end", (data) => {
+    const toId = safeText(data?.toId, 80);
+    emitToUser(toId, "call-ended", { fromId: user.id, callId: data.callId });
+  });
+
+  /* ── Group call mesh ── */
+  socket.on("group-call-signal", (data) => {
+    const group = db.groups.find(x => x.id === data?.groupId);
+    if (!group || !group.members.includes(user.id) || group.type !== "call") return;
+
+    for (const uid of group.members) {
+      if (uid === user.id) continue;
+      emitToUser(uid, "group-call-signal", {
+        fromId: user.id,
+        groupId: group.id,
+        kind: data.kind,
+        payload: data.payload
+      });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    const set = onlineSockets.get(user.id);
+    if (!set) return;
+    set.delete(socket.id);
+    if (!set.size) {
+      onlineSockets.delete(user.id);
+      io.emit("presence", { userId: user.id, online: false });
+    }
+  });
+});
+
+/* ═══════════════════════════ Boot ══════════════════════════════ */
+server.listen(PORT, () => {
+  console.log(`\n  ▲  Farius Chat\n  →  http://localhost:${PORT}\n`);
+});
+
+process.on("SIGINT",  () => { saveNow(); process.exit(0); });
+process.on("SIGTERM", () => { saveNow(); process.exit(0); });
+process.on("uncaughtException", (err) => console.error("[fatal]", err));
+process.on("unhandledRejection", (err) => console.error("[rejection]", err));

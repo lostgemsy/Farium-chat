@@ -1,17 +1,9 @@
 {
   "users": [],
-  "sessions": [],
-  "friendRequests": [],
+  "messages": [],
   "groups": [],
-  "globalMessages": [],
-  "groupMessages": {},
-  "bans": [],
   "announcements": [],
-  "ownerMessages": [],
-  "config": {
-    "lockdownUntil": 0,
-    "lockdownReason": "",
-    "chatResetOn": false,
-    "hud": {"enabled": false, "text":"", "x":50, "y":16, "scale":1}
-  }
+  "bans": [],
+  "mutes": [],
+  "auditLog": []
 }
