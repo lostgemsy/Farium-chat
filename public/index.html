@@ -12,9 +12,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
-/* ══════════════════════════════════════════════════════════════════
-   TOKENS
-   ══════════════════════════════════════════════════════════════════ */
 :root{
   --bg:#030303;
   --ink:#f5f5f5;
@@ -54,12 +51,7 @@ a{color:inherit}
 .small-label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-4)}
 h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;margin:0}
 
-/* ══════════════════════════════════════════════════════════════════
-   WALLPAPER BACKDROP (blurred)
-   ══════════════════════════════════════════════════════════════════ */
-.backdrop{
-  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
-}
+.backdrop{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .backdrop__img{
   position:absolute;inset:-6%;
   background:url("/wallpaper.png") center/cover no-repeat;
@@ -83,9 +75,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   100%{transform:scale(1.14) translate3d(-2%,-1.5%,0)}
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   GENERIC GLASS + BUTTONS
-   ══════════════════════════════════════════════════════════════════ */
 .glass{
   background:linear-gradient(180deg,var(--glass-2),var(--glass));
   border:1px solid var(--line);
@@ -132,9 +121,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 }
 .btn:hover::after{opacity:1}
 
-/* ══════════════════════════════════════════════════════════════════
-   SPLASH
-   ══════════════════════════════════════════════════════════════════ */
 .splash{
   position:fixed;inset:0;z-index:60;display:grid;place-items:center;
   transition:opacity .6s ease,visibility .6s ease;
@@ -172,9 +158,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 @keyframes orbA{50%{transform:translate(4%,3%) scale(1.06)}}
 @keyframes orbB{50%{transform:translate(-3%,-4%) scale(1.08)}}
 
-/* ══════════════════════════════════════════════════════════════════
-   AUTH — FULLSCREEN, NO CARD FRAME
-   ══════════════════════════════════════════════════════════════════ */
 .auth{
   position:fixed;inset:0;z-index:50;display:grid;place-items:center;
   padding:24px;overflow:auto;
@@ -252,9 +235,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 
 .auth-error{min-height:20px;color:#ff8a8a;font-size:13px;text-align:center}
 
-/* ══════════════════════════════════════════════════════════════════
-   APP — FULLSCREEN LAYOUT
-   ══════════════════════════════════════════════════════════════════ */
 .app{
   position:fixed;inset:0;z-index:10;display:grid;
   grid-template-columns:88px 1fr;
@@ -262,7 +242,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 }
 @keyframes appIn{to{opacity:1}}
 
-/* ── Sidebar ── */
 .rail{
   display:flex;flex-direction:column;align-items:center;padding:22px 12px 18px;
   gap:12px;border-right:1px solid var(--line);
@@ -305,7 +284,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 .rail-profile img{width:100%;height:100%;object-fit:cover}
 .rail-profile:hover{transform:scale(1.06);border-color:#fff}
 
-/* ── Main ── */
 .main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -332,9 +310,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 }
 .panel.active{opacity:1;transform:none;pointer-events:auto}
 
-/* ══════════════════════════════════════════════════════════════════
-   CHAT PANELS
-   ══════════════════════════════════════════════════════════════════ */
 .chat-shell{height:100%;display:flex;flex-direction:column;gap:14px;max-width:1100px;margin:0 auto}
 .messages{
   flex:1;overflow:auto;padding:14px 4px 8px;display:flex;flex-direction:column;gap:8px;
@@ -388,9 +363,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   transition:opacity .3s ease;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   CARDS / LISTS (Friends, Groups, Settings, Moderation)
-   ══════════════════════════════════════════════════════════════════ */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:1200px;margin:0 auto}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1200px;margin:0 auto}
 .card{
@@ -427,9 +399,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 }
 .search-row input:focus{border-color:rgba(255,255,255,.5)}
 
-/* ══════════════════════════════════════════════════════════════════
-   CALLS
-   ══════════════════════════════════════════════════════════════════ */
 .call-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.7fr);gap:18px;max-width:1200px;margin:0 auto}
 .call-status{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:13px}
 .video-stage{
@@ -473,9 +442,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   border:1px solid var(--line);font-size:12px;color:var(--ink-2);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   SETTINGS / MODERATION
-   ══════════════════════════════════════════════════════════════════ */
 .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;color:var(--ink-2)}
 .toggle{position:relative;width:44px;height:24px;flex:none}
 .toggle input{position:absolute;opacity:0;inset:0;cursor:pointer}
@@ -508,9 +474,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 .file-drop:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.03)}
 .file-drop input{display:none}
 
-/* ══════════════════════════════════════════════════════════════════
-   MODALS
-   ══════════════════════════════════════════════════════════════════ */
 .modal{
   position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;
   background:rgba(0,0,0,.55);backdrop-filter:blur(14px);
@@ -531,7 +494,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 }
 .modal-x:hover{color:#fff;border-color:#fff;transform:rotate(90deg)}
 
-/* Incoming call */
 .incoming{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;padding:8px}
 .pulse{
   position:absolute;top:0;width:120px;height:120px;border-radius:50%;
@@ -552,9 +514,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 .incoming-actions{display:flex;gap:12px;width:100%;margin-top:6px}
 .incoming-actions .btn{flex:1}
 
-/* ══════════════════════════════════════════════════════════════════
-   ANNOUNCEMENT — RIGHT SIDE STACK
-   ══════════════════════════════════════════════════════════════════ */
 .announce-stack{
   position:fixed;top:22px;right:22px;z-index:80;
   display:flex;flex-direction:column;gap:12px;
@@ -590,9 +549,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 }
 .announce-close:hover{color:#fff;border-color:var(--line-2);transform:rotate(90deg)}
 
-/* ══════════════════════════════════════════════════════════════════
-   TOASTS (bottom-left, non-blocking)
-   ══════════════════════════════════════════════════════════════════ */
 .toast-root{
   position:fixed;left:22px;bottom:22px;z-index:90;
   display:flex;flex-direction:column;gap:10px;width:min(340px,calc(100vw - 44px));
@@ -608,9 +564,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 @keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}
 @keyframes toastOut{to{opacity:0;transform:translateY(14px) scale(.95)}}
 
-/* ══════════════════════════════════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════════════════════════════════ */
 @media (max-width:960px){
   .grid-2,.grid-3,.call-layout{grid-template-columns:1fr}
   .video-stage{height:56vh}
@@ -631,7 +584,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   .nav-btn{width:46px;height:46px}
   .main{grid-row:1}
   .topbar-title h1{font-size:20px}
-  .topbar-actions .btn span{display:none}
   .announce-stack{top:14px;right:14px;left:14px;width:auto}
 }
 @media (prefers-reduced-motion:reduce){
@@ -641,14 +593,12 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 </head>
 <body>
 
-<!-- ══════════════════ BACKDROP ══════════════════ -->
 <div class="backdrop" aria-hidden="true">
   <div class="backdrop__img"></div>
   <div class="backdrop__veil"></div>
   <div class="backdrop__grain"></div>
 </div>
 
-<!-- ══════════════════ SPLASH ══════════════════ -->
 <div id="splash" class="splash">
   <div class="splash-orb splash-orb-a"></div>
   <div class="splash-orb splash-orb-b"></div>
@@ -665,7 +615,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   </div>
 </div>
 
-<!-- ══════════════════ AUTH ══════════════════ -->
 <div id="authView" class="auth hidden">
   <div class="auth-stage glass-strong">
     <div class="brand-row">
@@ -719,10 +668,8 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   </div>
 </div>
 
-<!-- ══════════════════ APP ══════════════════ -->
 <main id="app" class="app hidden">
 
-  <!-- Sidebar rail -->
   <aside class="rail" aria-label="Primary navigation">
     <div class="rail-mark" aria-hidden="true">F</div>
 
@@ -757,7 +704,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
     </button>
   </aside>
 
-  <!-- Main content -->
   <section class="main">
     <header class="topbar">
       <div class="topbar-title">
@@ -771,7 +717,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
 
     <div class="panels" id="panels">
 
-      <!-- ═ Global ═ -->
       <section id="panel-global" class="panel active">
         <div class="chat-shell">
           <div id="globalMessages" class="messages" role="log" aria-live="polite"></div>
@@ -790,7 +735,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
         </div>
       </section>
 
-      <!-- ═ Friends ═ -->
       <section id="panel-friends" class="panel">
         <div class="grid-2">
           <div class="card glass">
@@ -839,7 +783,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
         </div>
       </section>
 
-      <!-- ═ Groups ═ -->
       <section id="panel-groups" class="panel">
         <div class="grid-2">
           <div class="card glass">
@@ -880,7 +823,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
         </div>
       </section>
 
-      <!-- ═ Calls ═ -->
       <section id="panel-calls" class="panel">
         <div class="call-layout">
           <div class="card glass">
@@ -923,7 +865,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
         </div>
       </section>
 
-      <!-- ═ Settings ═ -->
       <section id="panel-settings" class="panel">
         <div class="grid-3">
           <div class="card glass">
@@ -970,7 +911,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
         </div>
       </section>
 
-      <!-- ═ Staff / Moderation ═ -->
       <section id="panel-staff" class="panel hidden">
         <div class="grid-2">
           <div class="card glass">
@@ -996,7 +936,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   </section>
 </main>
 
-<!-- ══════════════════ INCOMING CALL ══════════════════ -->
 <div id="incomingCall" class="modal hidden" role="dialog" aria-modal="true">
   <div class="modal-card glass-strong">
     <div class="incoming">
@@ -1014,7 +953,6 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   </div>
 </div>
 
-<!-- ══════════════════ GROUP MODAL ══════════════════ -->
 <div id="groupModal" class="modal hidden" role="dialog" aria-modal="true">
   <form id="groupForm" class="modal-card glass-strong">
     <button type="button" class="modal-x" data-close="groupModal" aria-label="Close">
@@ -1042,22 +980,17 @@ h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;marg
   </form>
 </div>
 
-<!-- ══════════════════ ANNOUNCEMENTS (RIGHT STACK) ══════════════════ -->
 <div id="announceStack" class="announce-stack" aria-live="polite"></div>
-
-<!-- ══════════════════ TOASTS ══════════════════ -->
 <div id="toastRoot" class="toast-root" role="status" aria-live="polite"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 "use strict";
 
-/* ══════════════════════════════════════════════════════════════════
-   STATE
-   ══════════════════════════════════════════════════════════════════ */
-const $  = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-const ROLE_LABEL = { admin:"Admin", mod:"Mod", user:"" };
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+const ROLE_LABEL = { admin: "Admin", mod: "Mod", user: "" };
 
 const state = {
   token: localStorage.getItem("farius_token") || "",
@@ -1079,22 +1012,26 @@ const state = {
   typingTimers: {}
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   TINY HELPERS
-   ══════════════════════════════════════════════════════════════════ */
 const esc = (s) => {
   const d = document.createElement("div");
   d.textContent = s ?? "";
   return d.innerHTML;
 };
-const fmtTime = (ts) => new Date(ts).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
-const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
-const emptyAvatar = "data:image/svg+xml;utf8," + encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'>
-     <rect width='80' height='80' fill='#111'/>
-     <text x='40' y='52' fill='#666' text-anchor='middle'
-           font-family='Inter,Arial' font-size='30' font-weight='700'>F</text>
-   </svg>`);
+const fmtTime = (ts) =>
+  new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const uid = () =>
+  crypto.randomUUID ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+const emptyAvatar =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'>
+       <rect width='80' height='80' fill='#111'/>
+       <text x='40' y='52' fill='#666' text-anchor='middle'
+             font-family='Inter,Arial' font-size='30' font-weight='700'>F</text>
+     </svg>`
+  );
 const avatarUrl = (u) => (u && u.avatar) || emptyAvatar;
 
 function api(url, opts = {}) {
@@ -1106,22 +1043,23 @@ function api(url, opts = {}) {
     return data;
   });
 }
+
 function formData(obj) {
   const f = new FormData();
-  for (const [k, v] of Object.entries(obj)) if (v !== undefined && v !== null && v !== "") f.append(k, v);
+  for (const [k, v] of Object.entries(obj))
+    if (v !== undefined && v !== null && v !== "") f.append(k, v);
   return f;
 }
-function show(el) { el.classList.remove("hidden"); }
-function hide(el) { el.classList.add("hidden"); }
 
-/* ══════════════════════════════════════════════════════════════════
-   TOASTS
-   ══════════════════════════════════════════════════════════════════ */
+const show = (el) => el.classList.remove("hidden");
+const hide = (el) => el.classList.add("hidden");
+
 function toast(message, type = "info") {
   const el = document.createElement("div");
   el.className = `toast glass ${type}`;
   el.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round">
       ${type === "error"
         ? `<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>`
         : `<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>`}
@@ -1134,42 +1072,35 @@ function toast(message, type = "info") {
   }, 3400);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   ANNOUNCEMENTS — RIGHT STACK
-   ══════════════════════════════════════════════════════════════════ */
 function showAnnouncement(a) {
   const stack = $("#announceStack");
   const el = document.createElement("div");
   el.className = "announce glass-strong";
   el.innerHTML = `
     <button class="announce-close" type="button" aria-label="Dismiss">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
     </button>
     <div class="announce-head">
       <div class="announce-icon">!</div>
-      <div>
-        <div class="announce-title">Farius Announcement</div>
-      </div>
+      <div><div class="announce-title">Farius Announcement</div></div>
     </div>
     <div class="announce-text">${esc(a.message)}</div>
     <div class="announce-meta">
-      <span>${new Date(a.createdAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>
+      <span>${new Date(a.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
       <span>Broadcast</span>
     </div>`;
-
   const close = () => {
     el.classList.add("out");
     setTimeout(() => el.remove(), 400);
   };
   el.querySelector(".announce-close").addEventListener("click", close);
   stack.appendChild(el);
-
   setTimeout(close, 12000);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   MESSAGE RENDERING
-   ══════════════════════════════════════════════════════════════════ */
 function addMessage(container, m) {
   const mine = state.user && m.fromId === state.user.id;
   const role = m.role && ROLE_LABEL[m.role] ? m.role : "";
@@ -1195,7 +1126,6 @@ function addMessage(container, m) {
       </div>
       <div class="text">${body}</div>
     </div>`;
-
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
 }
@@ -1204,9 +1134,6 @@ function renderMessages(container, messages) {
   for (const m of messages) addMessage(container, m);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   TYPING INDICATOR
-   ══════════════════════════════════════════════════════════════════ */
 function showTyping(el, name) {
   if (!el) return;
   el.textContent = `${name} is typing…`;
@@ -1218,17 +1145,15 @@ function showTyping(el, name) {
   }, 1600);
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   PANEL ROUTER
-   ══════════════════════════════════════════════════════════════════ */
 const TITLES = {
-  global:      ["Public room",  "Global"],
-  friends:     ["People",      "Friends"],
-  groups:      ["Communities", "Groups"],
-  calls:       ["Real-time",   "Calls"],
-  settings:    ["Preferences", "Settings"],
-  staff:       ["Control room", "Staff panel"]
+  global:   ["Public room", "Global"],
+  friends:  ["People", "Friends"],
+  groups:   ["Communities", "Groups"],
+  calls:    ["Real-time", "Calls"],
+  settings: ["Preferences", "Settings"],
+  staff:    ["Control room", "Staff panel"]
 };
+
 function showPanel(name) {
   if (name === "staff") {
     const role = state.user?.role;
@@ -1241,14 +1166,11 @@ function showPanel(name) {
   $("#panelEyebrow").textContent = eyebrow;
   $("#panelTitle").textContent = title;
 
-  if (name === "friends")  loadFriends();
-  if (name === "groups")  { loadMyGroups(); loadPublicGroups(); }
-  if (name === "staff")    loadStaff();
+  if (name === "friends") loadFriends();
+  if (name === "groups") { loadMyGroups(); loadPublicGroups(); }
+  if (name === "staff") loadStaff();
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   AUTH FLOW
-   ══════════════════════════════════════════════════════════════════ */
 function enterAuth() {
   $("#splash").classList.add("splash--out");
   setTimeout(() => hide($("#splash")), 620);
@@ -1283,9 +1205,6 @@ async function loginSuccess(payload) {
   await connectSocket();
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   PROFILE
-   ══════════════════════════════════════════════════════════════════ */
 function paintProfile() {
   const u = state.user;
   if (!u) return;
@@ -1297,10 +1216,17 @@ function paintProfile() {
   const staffVisible = role === "admin" || role === "mod";
   $("#staffNav").classList.toggle("hidden", !staffVisible);
   $("#panel-staff").classList.toggle("hidden", !staffVisible);
+
   if (role === "admin") {
-    $("#announceHint").textContent = "Broadcast a site-wide announcement. It appears on the right side of every online user's screen.";
+    $("#announceHint").textContent =
+      "Broadcast a site-wide announcement. It appears on the right side of every online user's screen.";
+    $("#announcementText").disabled = false;
+    $("#sendAnnouncement").disabled = false;
+    $("#sendAnnouncement").style.opacity = "";
+    $("#sendAnnouncement").style.cursor = "";
   } else if (role === "mod") {
-    $("#announceHint").textContent = "Moderators can mute, ban and unban users. Announcements are admin-only.";
+    $("#announceHint").textContent =
+      "Moderators can mute, ban and unban users. Announcements are admin-only.";
     $("#announcementText").disabled = true;
     $("#sendAnnouncement").disabled = true;
     $("#sendAnnouncement").style.opacity = ".45";
@@ -1308,9 +1234,6 @@ function paintProfile() {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   PARTICLES
-   ══════════════════════════════════════════════════════════════════ */
 let particlesEnabled = localStorage.getItem("farius_particles") !== "off";
 function buildParticles() {
   const el = $("#particles");
@@ -1321,11 +1244,10 @@ function buildParticles() {
     const s = document.createElement("span");
     s.style.cssText = `
       position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;
-      left:${Math.random()*100}%;top:${Math.random()*100}%;
-      opacity:${(.08 + Math.random()*.32).toFixed(2)};
-      animation:particleFloat ${12 + Math.random()*18}s linear infinite;
-      animation-delay:-${Math.random()*20}s;
-    `;
+      left:${Math.random() * 100}%;top:${Math.random() * 100}%;
+      opacity:${(0.08 + Math.random() * 0.32).toFixed(2)};
+      animation:particleFloat ${12 + Math.random() * 18}s linear infinite;
+      animation-delay:-${Math.random() * 20}s;`;
     el.appendChild(s);
   }
   if (!document.getElementById("particleKeyframes")) {
@@ -1333,15 +1255,12 @@ function buildParticles() {
     style.id = "particleKeyframes";
     style.textContent = `@keyframes particleFloat{
       0%{transform:translate3d(0,0,0)}
-      100%{transform:translate3d(${Math.random()*40-20}px,${-120-Math.random()*80}px,0)}
+      100%{transform:translate3d(${Math.random() * 40 - 20}px,${-120 - Math.random() * 80}px,0)}
     }`;
     document.head.appendChild(style);
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   GLOBAL CHAT
-   ══════════════════════════════════════════════════════════════════ */
 async function loadGlobal() {
   try {
     const d = await api("/api/messages/global");
@@ -1355,9 +1274,6 @@ function sendGlobal() {
   $("#globalInput").value = "";
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   FRIENDS
-   ══════════════════════════════════════════════════════════════════ */
 async function loadFriends() {
   try {
     const d = await api("/api/friends");
@@ -1370,10 +1286,16 @@ async function loadFriends() {
           <div class="grow"><strong>${esc(u.username)}</strong><small>Friend</small></div>
           <div class="row-actions">
             <button class="btn btn--icon btn--ghost" data-dm="${u.id}" title="Message">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/>
+              </svg>
             </button>
             <button class="btn btn--icon btn--ghost" data-call="${u.id}" title="Call">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92V21a1 1 0 0 1-1.11 1A19 19 0 0 1 2 3.11 1 1 0 0 1 3 2h4.09a1 1 0 0 1 1 .75c.13.96.36 1.9.7 2.81a1 1 0 0 1-.23 1.05L7.09 8a16 16 0 0 0 8.91 8.91l1.38-1.38a1 1 0 0 1 1.05-.23c.91.34 1.85.57 2.81.7a1 1 0 0 1 .76 1.02Z"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92V21a1 1 0 0 1-1.11 1A19 19 0 0 1 2 3.11 1 1 0 0 1 3 2h4.09a1 1 0 0 1 1 .75c.13.96.36 1.9.7 2.81a1 1 0 0 1-.23 1.05L7.09 8a16 16 0 0 0 8.91 8.91l1.38-1.38a1 1 0 0 1 1.05-.23c.91.34 1.85.57 2.81.7a1 1 0 0 1 .76 1.02Z"/>
+              </svg>
             </button>
           </div>
         </div>`).join("")
@@ -1389,8 +1311,15 @@ async function loadFriends() {
       : `<div class="muted tiny">No pending requests.</div>`;
 
     $$("[data-accept]").forEach((b) => b.onclick = async () => {
-      try { await api("/api/friends/accept", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ userId: b.dataset.accept }) }); toast("Friend added."); loadFriends(); }
-      catch (e) { toast(e.message, "error"); }
+      try {
+        await api("/api/friends/accept", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: b.dataset.accept })
+        });
+        toast("Friend added.");
+        loadFriends();
+      } catch (e) { toast(e.message, "error"); }
     });
     $$("[data-dm]").forEach((b) => b.onclick = () => openDM(b.dataset.dm));
     $$("[data-call]").forEach((b) => b.onclick = () => startCall(b.dataset.call, true));
@@ -1410,9 +1339,16 @@ async function searchUsers() {
           <button class="btn btn--sm btn--ghost" data-add="${u.id}">Add</button>
         </div>`).join("")
       : `<div class="muted tiny">No one found.</div>`;
+
     $$("[data-add]").forEach((b) => b.onclick = async () => {
-      try { await api("/api/friends/request", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ userId: b.dataset.add }) }); toast("Request sent."); }
-      catch (e) { toast(e.message, "error"); }
+      try {
+        await api("/api/friends/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: b.dataset.add })
+        });
+        toast("Request sent.");
+      } catch (e) { toast(e.message, "error"); }
     });
   } catch (e) { toast(e.message, "error"); }
 }
@@ -1437,9 +1373,6 @@ function sendDM() {
   $("#dmInput").value = "";
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   GROUPS
-   ══════════════════════════════════════════════════════════════════ */
 async function loadMyGroups() {
   try {
     const d = await api("/api/groups/mine");
@@ -1464,7 +1397,7 @@ function groupRow(g, mine) {
     <div class="list-item">
       <div class="grow">
         <strong>${esc(g.name)}</strong>
-        <small>${esc(g.description || "No description")} · ${label} · ${g.memberCount} member${g.memberCount===1?"":"s"}</small>
+        <small>${esc(g.description || "No description")} · ${label} · ${g.memberCount} member${g.memberCount === 1 ? "" : "s"}</small>
       </div>
       <div class="row-actions">
         ${mine
@@ -1477,8 +1410,15 @@ function bindGroupRows() {
   $$("[data-open-group]").forEach((b) => b.onclick = () => openGroup(b.dataset.openGroup));
   $$("[data-join-group]").forEach((b) => b.onclick = async () => {
     const pass = prompt("Group password (blank if public):") || "";
-    try { await api(`/api/groups/${b.dataset.joinGroup}/join`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ password: pass }) }); toast("Joined."); loadMyGroups(); }
-    catch (e) { toast(e.message, "error"); }
+    try {
+      await api(`/api/groups/${b.dataset.joinGroup}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pass })
+      });
+      toast("Joined.");
+      loadMyGroups();
+    } catch (e) { toast(e.message, "error"); }
   });
 }
 async function openGroup(id) {
@@ -1503,30 +1443,27 @@ function sendGroup() {
   $("#groupInput").value = "";
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   UPLOAD
-   ══════════════════════════════════════════════════════════════════ */
 async function uploadAndSend(file, scope) {
   if (!file) return;
   try {
-    const d = await api("/api/upload", { method:"POST", body: formData({ file }) });
+    const d = await api("/api/upload", { method: "POST", body: formData({ file }) });
     const payload = { fileUrl: d.url, fileType: d.type, name: d.name };
     const text = `📎 ${d.name}`;
     if (scope === "global") state.socket.emit("global-message", { text, ...payload });
-    else if (scope === "group" && state.selectedGroup) state.socket.emit("group-message", { groupId: state.selectedGroup.id, text, ...payload });
+    else if (scope === "group" && state.selectedGroup)
+      state.socket.emit("group-message", {
+        groupId: state.selectedGroup.id, text, ...payload
+      });
     toast("Uploaded.");
   } catch (e) { toast(e.message, "error"); }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   WEBRTC
-   ══════════════════════════════════════════════════════════════════ */
 const rtcConfig = {
   iceServers: [
     { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }
-    // { urls:"turn:turn.example.com:3478", username:"user", credential:"pass" }
   ]
 };
+
 async function ensureMedia(video) {
   if (state.localStream) {
     if (video && state.localStream.getVideoTracks().length === 0) {
@@ -1540,7 +1477,9 @@ async function ensureMedia(video) {
     }
     return state.localStream;
   }
-  state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !!video });
+  state.localStream = await navigator.mediaDevices.getUserMedia({
+    audio: true, video: !!video
+  });
   $("#localVideo").srcObject = state.localStream;
   hide($("#callEmpty"));
   setupGain();
@@ -1572,8 +1511,14 @@ async function createPeer(targetId, initiator) {
   };
   state.peer.onconnectionstatechange = () => {
     const s = state.peer?.connectionState;
-    if (s === "connected") { $("#callStatus").textContent = "Live"; $("#callStatusDot").classList.remove("off"); }
-    if (s === "failed" || s === "disconnected") { toast("Call disconnected.", "error"); endCall(); }
+    if (s === "connected") {
+      $("#callStatus").textContent = "Live";
+      $("#callStatusDot").classList.remove("off");
+    }
+    if (s === "failed" || s === "disconnected") {
+      toast("Call disconnected.", "error");
+      endCall();
+    }
   };
 
   state.remoteStream = new MediaStream();
@@ -1612,9 +1557,13 @@ async function acceptCall() {
   } catch (e) { toast(e.message, "error"); }
 }
 function endCall(silent = false) {
-  if (state.callTarget && state.socket) state.socket.emit("call-end", { toId: state.callTarget, callId: state.callId });
+  if (state.callTarget && state.socket)
+    state.socket.emit("call-end", { toId: state.callTarget, callId: state.callId });
   if (state.peer) { state.peer.close(); state.peer = null; }
-  if (state.localStream) { state.localStream.getTracks().forEach((t) => t.stop()); state.localStream = null; }
+  if (state.localStream) {
+    state.localStream.getTracks().forEach((t) => t.stop());
+    state.localStream = null;
+  }
   $("#localVideo").srcObject = null;
   $("#remoteVideo").srcObject = null;
   show($("#callEmpty"));
@@ -1625,23 +1574,26 @@ function endCall(silent = false) {
   if (!silent) toast("Call ended.");
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   SOCKET
-   ══════════════════════════════════════════════════════════════════ */
 async function connectSocket() {
   if (!state.token) return;
-  state.socket = io({ auth: { token: state.token } });
+  state.socket = io({
+    auth: { token: state.token },
+    transports: ["websocket"]
+  });
 
-  state.socket.on("connect",    () => $("#connectionDot").classList.remove("off"));
+  state.socket.on("connect", () => $("#connectionDot").classList.remove("off"));
   state.socket.on("disconnect", () => $("#connectionDot").classList.add("off"));
   state.socket.on("connect_error", (e) => toast("Connection failed: " + e.message, "error"));
 
   state.socket.on("global-message", (m) => addMessage($("#globalMessages"), m));
+
   state.socket.on("dm-message", (m) => {
     if (state.selectedFriend && (m.fromId === state.selectedFriend || m.toId === state.selectedFriend))
       addMessage($("#dmMessages"), m);
-    else if (m.fromId !== state.user.id) toast(`${m.username}: ${m.text.slice(0, 40)}`);
+    else if (m.fromId !== state.user.id)
+      toast(`${m.username}: ${m.text.slice(0, 40)}`);
   });
+
   state.socket.on("group-message", (m) => {
     if (state.selectedGroup?.id === m.groupId) addMessage($("#groupMessages"), m);
   });
@@ -1649,8 +1601,10 @@ async function connectSocket() {
   state.socket.on("typing", (d) => {
     if (d.fromId === state.user.id) return;
     if (d.scope === "global") showTyping($("#globalTyping"), d.username);
-    else if (d.scope === "dm" && d.fromId === state.selectedFriend) showTyping($("#dmTyping"), d.username);
-    else if (d.scope === "group" && d.groupId === state.selectedGroup?.id) showTyping($("#groupTyping"), d.username);
+    else if (d.scope === "dm" && d.fromId === state.selectedFriend)
+      showTyping($("#dmTyping"), d.username);
+    else if (d.scope === "group" && d.groupId === state.selectedGroup?.id)
+      showTyping($("#groupTyping"), d.username);
   });
 
   state.socket.on("toast", (d) => toast(d.message, d.type || "info"));
@@ -1680,7 +1634,8 @@ async function connectSocket() {
   });
   state.socket.on("call-answer", async (d) => {
     if (state.peer) {
-      try { await state.peer.setRemoteDescription(d.answer); $("#callStatus").textContent = "Live"; } catch {}
+      try { await state.peer.setRemoteDescription(d.answer); $("#callStatus").textContent = "Live"; }
+      catch {}
     }
   });
   state.socket.on("ice-candidate", async (d) => {
@@ -1690,9 +1645,6 @@ async function connectSocket() {
   state.socket.on("presence", () => {});
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   TYPING EMIT
-   ══════════════════════════════════════════════════════════════════ */
 function wireTyping() {
   const fire = (scope, input, extra = {}) => {
     let last = 0;
@@ -1705,7 +1657,7 @@ function wireTyping() {
   };
   fire("global", $("#globalInput"));
   fire("dm", $("#dmInput"), { get toId() { return state.selectedFriend; } });
-  // group typing needs dynamic groupId — attach on open
+
   $("#groupInput").addEventListener("input", () => {
     if (!state.selectedGroup) return;
     const t = Date.now();
@@ -1715,9 +1667,6 @@ function wireTyping() {
   });
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   STAFF PANEL
-   ══════════════════════════════════════════════════════════════════ */
 async function loadStaff() {
   if (!state.user) return;
   const role = state.user.role;
@@ -1731,27 +1680,41 @@ async function loadStaff() {
       if (u.role === "admin") tags.push(`<span class="role-pill admin">Admin</span>`);
       else if (u.role === "mod") tags.push(`<span class="role-pill mod">Mod</span>`);
       if (u.banned) tags.push(`<span class="role-pill banned">Banned</span>`);
-      if (u.muted)  tags.push(`<span class="role-pill muted">Muted</span>`);
+      if (u.muted) tags.push(`<span class="role-pill muted">Muted</span>`);
 
       const actions = [];
       if (role === "admin" && u.id !== me) {
         actions.push(`
-          <select class="role-select" data-role-select="${u.id}" title="Change role" style="background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--ink);padding:6px 8px;border-radius:9px;outline:none">
-            <option value="user"  ${u.role==="user"?"selected":""}>User</option>
-            <option value="mod"   ${u.role==="mod"?"selected":""}>Mod</option>
-            <option value="admin" ${u.role==="admin"?"selected":""}>Admin</option>
+          <select data-role-select="${u.id}" title="Change role"
+                  style="background:rgba(0,0,0,.35);border:1px solid var(--line);
+                         color:var(--ink);padding:6px 8px;border-radius:9px;outline:none">
+            <option value="user"  ${u.role === "user" ? "selected" : ""}>User</option>
+            <option value="mod"   ${u.role === "mod" ? "selected" : ""}>Mod</option>
+            <option value="admin" ${u.role === "admin" ? "selected" : ""}>Admin</option>
           </select>`);
       }
       if (u.id !== me) {
-        if (!u.muted) actions.push(`<button class="btn btn--sm btn--ghost" data-mute="${u.id}" title="Mute">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
-        </button>`);
-        if (!u.banned) actions.push(`<button class="btn btn--sm btn--ghost" data-ban="${u.id}" title="Ban">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
-        </button>`);
-        else actions.push(`<button class="btn btn--sm btn--ghost" data-unban="${u.id}" title="Unban">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        </button>`);
+        if (!u.muted) actions.push(`
+          <button class="btn btn--sm btn--ghost" data-mute="${u.id}" title="Mute">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="m22 9-6 6M16 9l6 6"/>
+            </svg>
+          </button>`);
+        if (!u.banned) actions.push(`
+          <button class="btn btn--sm btn--ghost" data-ban="${u.id}" title="Ban">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/>
+            </svg>
+          </button>`);
+        else actions.push(`
+          <button class="btn btn--sm btn--ghost" data-unban="${u.id}" title="Unban">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"/>
+            </svg>
+          </button>`);
       }
 
       return `
@@ -1765,38 +1728,67 @@ async function loadStaff() {
         </div>`;
     }).join("");
 
-    $("#announcementList").innerHTML = d.announcements.slice().reverse().map((a) => `
-      <div class="list-item">
-        <div class="grow">
-          <strong style="font-weight:500;font-size:13px">${esc(a.message)}</strong>
-          <small>${new Date(a.createdAt).toLocaleString()}</small>
-        </div>
-      </div>`).join("") || `<div class="muted tiny">No announcements yet.</div>`;
+    $("#announcementList").innerHTML =
+      d.announcements.slice().reverse().map((a) => `
+        <div class="list-item">
+          <div class="grow">
+            <strong style="font-weight:500;font-size:13px">${esc(a.message)}</strong>
+            <small>${new Date(a.createdAt).toLocaleString()}</small>
+          </div>
+        </div>`).join("") || `<div class="muted tiny">No announcements yet.</div>`;
 
-    /* ── Mute ── */
     $$("[data-mute]").forEach((b) => b.onclick = async () => {
       const minutes = Number(prompt("Mute duration (minutes):", "10") || 10);
       if (!minutes) return;
-      try { await api("/api/moderation/mute", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ userId: b.dataset.mute, minutes }) }); toast("User muted."); loadStaff(); }
-      catch (e) { toast(e.message, "error"); }
+      try {
+        await api("/api/moderation/mute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: b.dataset.mute, minutes })
+        });
+        toast("User muted.");
+        loadStaff();
+      } catch (e) { toast(e.message, "error"); }
     });
-    /* ── Ban ── */
     $$("[data-ban]").forEach((b) => b.onclick = async () => {
       const days = Number(prompt("Ban duration (days, 0 = permanent):", "1"));
       if (Number.isNaN(days)) return;
       const permanent = days === 0;
-      try { await api("/api/moderation/ban", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ userId: b.dataset.ban, days: permanent ? 3650 : days, permanent }) }); toast("User banned."); loadStaff(); }
-      catch (e) { toast(e.message, "error"); }
+      try {
+        await api("/api/moderation/ban", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: b.dataset.ban,
+            days: permanent ? 3650 : days,
+            permanent
+          })
+        });
+        toast("User banned.");
+        loadStaff();
+      } catch (e) { toast(e.message, "error"); }
     });
-    /* ── Unban ── */
     $$("[data-unban]").forEach((b) => b.onclick = async () => {
-      try { await api("/api/moderation/unban", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ userId: b.dataset.unban }) }); toast("User unbanned."); loadStaff(); }
-      catch (e) { toast(e.message, "error"); }
+      try {
+        await api("/api/moderation/unban", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: b.dataset.unban })
+        });
+        toast("User unbanned.");
+        loadStaff();
+      } catch (e) { toast(e.message, "error"); }
     });
-    /* ── Role change ── */
     $$("[data-role-select]").forEach((sel) => sel.onchange = async () => {
-      try { await api("/api/admin/role", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ userId: sel.dataset.roleSelect, role: sel.value }) }); toast("Role updated."); loadStaff(); }
-      catch (e) { toast(e.message, "error"); loadStaff(); }
+      try {
+        await api("/api/admin/role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: sel.dataset.roleSelect, role: sel.value })
+        });
+        toast("Role updated.");
+        loadStaff();
+      } catch (e) { toast(e.message, "error"); loadStaff(); }
     });
   } catch (e) { toast(e.message, "error"); }
 }
@@ -1804,16 +1796,17 @@ async function sendAnnouncement() {
   const message = $("#announcementText").value.trim();
   if (!message) return;
   try {
-    await api("/api/moderation/announcement", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ message }) });
+    await api("/api/moderation/announcement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message })
+    });
     $("#announcementText").value = "";
     toast("Announcement sent.");
     loadStaff();
   } catch (e) { toast(e.message, "error"); }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   FILE PICKER PREVIEWS
-   ══════════════════════════════════════════════════════════════════ */
 function previewFile(input, targetEl) {
   const f = input.files[0];
   if (!f) return;
@@ -1821,45 +1814,46 @@ function previewFile(input, targetEl) {
   targetEl.outerHTML = `<img id="${targetEl.id}" src="${url}" alt="">`;
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   WIRE UP
-   ══════════════════════════════════════════════════════════════════ */
 function wireUI() {
-
-  /* Splash → auth */
   $("#enterBtn").addEventListener("click", () => {
     if (state.token) bootWithToken();
     else enterAuth();
   });
 
-  /* Auth tabs */
   $$(".tabs button").forEach((b) => b.addEventListener("click", () => {
-    $$(".tabs button").forEach((x) => { x.classList.remove("active"); x.setAttribute("aria-selected","false"); });
+    $$(".tabs button").forEach((x) => {
+      x.classList.remove("active");
+      x.setAttribute("aria-selected", "false");
+    });
     b.classList.add("active");
-    b.setAttribute("aria-selected","true");
+    b.setAttribute("aria-selected", "true");
     $("#signinForm").classList.toggle("hidden", b.dataset.tab !== "signin");
     $("#signupForm").classList.toggle("hidden", b.dataset.tab !== "signup");
     $("#authError").textContent = "";
   }));
 
-  /* Auth forms */
   $("#signinForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("#authError").textContent = "";
     try {
       const d = await api("/api/auth/signin", {
-        method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ username: $("#signinUser").value, password: $("#signinPass").value })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: $("#signinUser").value,
+          password: $("#signinPass").value
+        })
       });
       await loginSuccess(d);
     } catch (err) { $("#authError").textContent = err.message; }
   });
+
   $("#signupForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("#authError").textContent = "";
     try {
       const d = await api("/api/auth/signup", {
-        method:"POST",
+        method: "POST",
         body: formData({
           username: $("#signupUser").value,
           password: $("#signupPass").value,
@@ -1870,11 +1864,9 @@ function wireUI() {
     } catch (err) { $("#authError").textContent = err.message; }
   });
 
-  /* Avatar previews */
   $("#signupAvatar").addEventListener("change", (e) => previewFile(e.target, $("#signupAvatarPreview")));
   $("#profileAvatar").addEventListener("change", (e) => previewFile(e.target, $("#profileAvatarPreview")));
 
-  /* Nav */
   $("#railNav").addEventListener("click", (e) => {
     const b = e.target.closest(".nav-btn");
     if (b && b.dataset.panel) showPanel(b.dataset.panel);
@@ -1882,29 +1874,35 @@ function wireUI() {
   $("#railProfile").addEventListener("click", () => showPanel("settings"));
   $("#logoutBtn").addEventListener("click", logout);
 
-  /* Global chat */
   $("#globalSend").addEventListener("click", sendGlobal);
-  $("#globalInput").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendGlobal(); } });
+  $("#globalInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendGlobal(); }
+  });
   $("#uploadGlobal").addEventListener("click", () => $("#globalFile").click());
   $("#globalFile").addEventListener("change", (e) => uploadAndSend(e.target.files[0], "global"));
 
-  /* Friends */
   $("#refreshFriends").addEventListener("click", loadFriends);
   $("#userSearchBtn").addEventListener("click", searchUsers);
-  $("#userSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") searchUsers(); });
+  $("#userSearch").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchUsers();
+  });
   $("#dmSend").addEventListener("click", sendDM);
-  $("#dmInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendDM(); } });
+  $("#dmInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); sendDM(); }
+  });
   $("#dmCallAudio").addEventListener("click", () => state.selectedFriend && startCall(state.selectedFriend, false));
   $("#dmCallVideo").addEventListener("click", () => state.selectedFriend && startCall(state.selectedFriend, true));
 
-  /* Groups */
   $("#newGroup").addEventListener("click", () => show($("#groupModal")));
-  $("#groupPrivate").addEventListener("change", (e) => { $("#groupPassword").disabled = !e.target.checked; });
+  $("#groupPrivate").addEventListener("change", (e) => {
+    $("#groupPassword").disabled = !e.target.checked;
+  });
   $("#groupForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
       await api("/api/groups", {
-        method:"POST", headers:{ "Content-Type":"application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: $("#groupName").value,
           description: $("#groupDescription").value,
@@ -1922,19 +1920,26 @@ function wireUI() {
       loadPublicGroups();
     } catch (err) { toast(err.message, "error"); }
   });
-  $("#refreshGroups").addEventListener("click", () => { loadMyGroups(); loadPublicGroups(); });
+  $("#refreshGroups").addEventListener("click", () => {
+    loadMyGroups();
+    loadPublicGroups();
+  });
   $("#groupSend").addEventListener("click", sendGroup);
-  $("#groupInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sendGroup(); } });
+  $("#groupInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); sendGroup(); }
+  });
   $("#groupUpload").addEventListener("click", () => $("#groupFile").click());
   $("#groupFile").addEventListener("change", (e) => uploadAndSend(e.target.files[0], "group"));
 
-  /* Modal close */
   $$("[data-close]").forEach((b) => b.addEventListener("click", () => hide($("#" + b.dataset.close))));
 
-  /* Calls */
   $("#acceptCall").addEventListener("click", acceptCall);
   $("#declineCall").addEventListener("click", () => {
-    if (state.incoming) state.socket.emit("call-end", { toId: state.incoming.fromId, callId: state.incoming.callId });
+    if (state.incoming)
+      state.socket.emit("call-end", {
+        toId: state.incoming.fromId,
+        callId: state.incoming.callId
+      });
     state.incoming = null;
     hide($("#incomingCall"));
   });
@@ -1942,7 +1947,7 @@ function wireUI() {
   $("#toggleMic").addEventListener("click", () => {
     if (!state.localStream) return;
     state.micOn = !state.micOn;
-    state.localStream.getAudioTracks().forEach((t) => t.enabled = state.micOn);
+    state.localStream.getAudioTracks().forEach((t) => (t.enabled = state.micOn));
     $("#toggleMic").classList.toggle("off", !state.micOn);
   });
   $("#toggleCamera").addEventListener("click", async () => {
@@ -1951,12 +1956,15 @@ function wireUI() {
     if (enable && state.localStream.getVideoTracks().length === 0) {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: true });
-        s.getVideoTracks().forEach((t) => { state.localStream.addTrack(t); state.peer?.addTrack(t, state.localStream); });
+        s.getVideoTracks().forEach((t) => {
+          state.localStream.addTrack(t);
+          state.peer?.addTrack(t, state.localStream);
+        });
         $("#localVideo").srcObject = state.localStream;
       } catch (e) { return toast(e.message, "error"); }
     }
     state.cameraOn = enable;
-    state.localStream.getVideoTracks().forEach((t) => t.enabled = enable);
+    state.localStream.getVideoTracks().forEach((t) => (t.enabled = enable));
     $("#toggleCamera").classList.toggle("off", !enable);
   });
   $("#micGain").addEventListener("input", (e) => {
@@ -1964,7 +1972,6 @@ function wireUI() {
     if (state.gainNode) state.gainNode.gain.value = Number(e.target.value) / 100;
   });
 
-  /* Settings */
   $("#particlesToggle").checked = particlesEnabled;
   $("#particlesToggle").addEventListener("change", (e) => {
     particlesEnabled = e.target.checked;
@@ -1973,20 +1980,34 @@ function wireUI() {
   });
   $("#motionToggle").addEventListener("change", (e) => {
     document.body.style.setProperty("--dur", e.target.checked ? "0s" : ".45s");
-    document.querySelectorAll("*").forEach((el) => el.style.animationPlayState = e.target.checked ? "paused" : "running");
+    document.querySelectorAll("*").forEach((el) => {
+      el.style.animationPlayState = e.target.checked ? "paused" : "running";
+    });
   });
   $("#saveAppearance").addEventListener("click", async () => {
     try {
-      const d = await api("/api/profile", { method:"POST", body: formData({ username: state.user.username, background: $("#backgroundUrl").value }) });
+      const d = await api("/api/profile", {
+        method: "POST",
+        body: formData({
+          username: state.user.username,
+          background: $("#backgroundUrl").value
+        })
+      });
       state.user = d.user;
-      localStorage.setItem("farius_token", d.token);
       state.token = d.token;
+      localStorage.setItem("farius_token", d.token);
       toast("Appearance saved.");
     } catch (e) { toast(e.message, "error"); }
   });
   $("#saveProfile").addEventListener("click", async () => {
     try {
-      const d = await api("/api/profile", { method:"POST", body: formData({ username: $("#profileName").value, avatar: $("#profileAvatar").files[0] }) });
+      const d = await api("/api/profile", {
+        method: "POST",
+        body: formData({
+          username: $("#profileName").value,
+          avatar: $("#profileAvatar").files[0]
+        })
+      });
       state.user = d.user;
       state.token = d.token;
       localStorage.setItem("farius_token", d.token);
@@ -1997,31 +2018,28 @@ function wireUI() {
   $("#makeGif").addEventListener("click", async () => {
     const f = $("#gifVideo").files[0];
     if (!f) return toast("Choose a video first.", "error");
-    const fd = new FormData(); fd.append("video", f);
+    const fd = new FormData();
+    fd.append("video", f);
     try {
-      const d = await api("/api/gif", { method:"POST", body: fd });
-      $("#gifResult").innerHTML = `GIF ready: <a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a>`;
+      const d = await api("/api/gif", { method: "POST", body: fd });
+      $("#gifResult").innerHTML =
+        `GIF ready: <a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a>`;
       toast("GIF created.");
     } catch (e) { toast(e.message, "error"); }
   });
 
-  /* Staff panel */
   $("#refreshMod").addEventListener("click", loadStaff);
   $("#sendAnnouncement").addEventListener("click", sendAnnouncement);
 
-  /* Button shine follow-cursor */
   document.addEventListener("mousemove", (e) => {
     const btn = e.target.closest(".btn");
     if (!btn) return;
     const r = btn.getBoundingClientRect();
-    btn.style.setProperty("--mx", (e.clientX - r.left) + "px");
-    btn.style.setProperty("--my", (e.clientY - r.top) + "px");
+    btn.style.setProperty("--mx", e.clientX - r.left + "px");
+    btn.style.setProperty("--my", e.clientY - r.top + "px");
   });
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   BOOT
-   ══════════════════════════════════════════════════════════════════ */
 async function bootWithToken() {
   try {
     const d = await api("/api/me");
@@ -2037,7 +2055,6 @@ async function bootWithToken() {
 
 wireUI();
 
-/* If we already have a token, jump straight to the app; otherwise wait for Enter */
 if (state.token) {
   $("#splash").classList.add("splash--out");
   setTimeout(() => hide($("#splash")), 620);
